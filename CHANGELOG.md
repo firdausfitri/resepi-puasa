@@ -6,6 +6,12 @@ Format ini berdasarkan [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Added
+- Auto deploy GitHub Pages melalui GitHub Actions (`deploy-pages.yml`) untuk build + publish `dist` pada setiap push ke `main`.
+
+### Changed
+- Dokumentasi deployment dalam `README.md` ditukar daripada aliran manual `docs/` kepada aliran auto deploy GitHub Actions.
+
 ## [0.2.0] - 2026-02-18
 
 ### Added

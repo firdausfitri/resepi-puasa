@@ -81,23 +81,16 @@ Diurus oleh `src/lib/storage.ts`:
 3. Tiada rewrite rules diperlukan sebab route guna hash (`#/...`).
 
 ### GitHub Pages
-Kaedah paling mudah (tanpa GitHub Actions scope tambahan) ialah guna folder `docs/` di branch `main`.
+Projek ini sudah disediakan dengan auto deploy melalui GitHub Actions:
+`/.github/workflows/deploy-pages.yml`
 
-1. Jana fail pages:
-   ```bash
-   npm run build:docs
-   ```
-2. Commit + push perubahan (termasuk `docs/`):
-   ```bash
-   git add .
-   git commit -m "Update docs build"
-   git push
-   ```
-3. Di GitHub repo: `Settings` -> `Pages`
-   - `Build and deployment`: `Deploy from a branch`
-   - `Branch`: `main`
-   - `Folder`: `/docs`
-4. Simpan, kemudian tunggu deployment siap.
+1. One-time setup di GitHub repo: `Settings` -> `Pages`
+   - `Build and deployment`
+   - `Source`: `GitHub Actions`
+2. Lepas itu, setiap kali `git push` ke branch `main`, Pages akan auto:
+   - `npm ci`
+   - `npm run build`
+   - deploy folder `dist`
 
 URL Pages biasanya:
 `https://<username>.github.io/<repo>/`
