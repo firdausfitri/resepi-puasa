@@ -6,6 +6,8 @@ Format ini berdasarkan [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-18
+
 ### Added
 - Kad "Menu Hari Ini" pada halaman Plan dengan tindakan pantas ke resepi atau tambah ke Shopping List.
 - Paparan "Hari ke-X Ramadan di Malaysia" berdasarkan tarikh mula 1 Ramadan pada 19 Februari (zon masa `Asia/Kuala_Lumpur`).
@@ -25,4 +27,3 @@ Format ini berdasarkan [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
   - BLD (Ayam Balado Hijau)
   - KRM (Ayam Masak Kurma)
   - BPP (Ayam Black Pepper)
-
