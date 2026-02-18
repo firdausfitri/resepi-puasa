@@ -30,35 +30,38 @@ export const ingredients: Ingredient[] = [
     quantity: '6–7 inci',
   },
   {
+    id: 'kunyit-hidup',
+    name: 'Kunyit hidup',
+    category: 'Bawang & Halia',
+    menuCodes: ['PPT'],
+    quantity: 'Sebesar ibu jari',
+  },
+  {
     id: 'bawang-holland',
     name: 'Bawang holland',
     category: 'Bawang & Halia',
     menuCodes: ['HLA'],
-    quantity: '1 biji',
+    quantity: '1/2 biji',
   },
   {
     id: 'cili-padi-merah',
     name: 'Cili padi merah',
     category: 'Cili',
-    menuCodes: ['PPT', 'KCP', 'PKP'],
-  },
-  {
-    id: 'cili-padi-hijau',
-    name: 'Cili padi hijau',
-    category: 'Cili',
-    menuCodes: ['BLD'],
+    menuCodes: ['PPT', 'KCP', 'HLA', 'PKP'],
   },
   {
     id: 'cili-hijau-besar',
     name: 'Cili hijau besar',
     category: 'Cili',
     menuCodes: ['BLD'],
+    quantity: '15 biji',
   },
   {
     id: 'cili-kisar',
     name: 'Cili kisar',
     category: 'Cili',
     menuCodes: ['KCP'],
+    quantity: '2 sudu',
   },
   {
     id: 'serai',
@@ -78,6 +81,7 @@ export const ingredients: Ingredient[] = [
     name: 'Daun kari',
     category: 'Herba & Aromatik',
     menuCodes: ['KCP'],
+    quantity: '5 tangkai',
   },
   {
     id: 'daun-selasih',
@@ -124,13 +128,13 @@ export const ingredients: Ingredient[] = [
     name: 'Limau nipis',
     category: 'Sayur Tambahan',
     menuCodes: ['BLD'],
-    quantity: '2–3 biji',
+    quantity: '1 biji',
   },
   {
     id: 'lemon',
     name: 'Lemon',
     category: 'Sayur Tambahan',
-    menuCodes: ['PPT'],
+    menuCodes: [],
     quantity: '1–2 biji',
   },
   {
@@ -146,12 +150,13 @@ export const ingredients: Ingredient[] = [
     category: 'Sos & Perasa',
     menuCodes: ['KCP', 'HLA', 'PKP', 'BPP'],
     quantity: 'botol besar',
+    notes: 'KCP: 2 sudu (Mahsuri)',
   },
   {
     id: 'kicap-manis',
     name: 'Kicap manis',
     category: 'Sos & Perasa',
-    menuCodes: ['KCP', 'PKP', 'BPP'],
+    menuCodes: ['HLA', 'PKP', 'BPP'],
     quantity: 'botol besar',
   },
   {
@@ -159,6 +164,8 @@ export const ingredients: Ingredient[] = [
     name: 'Kicap manis pedas',
     category: 'Sos & Perasa',
     menuCodes: ['KCP'],
+    quantity: '1.5 cawan',
+    notes: 'Mahsuri',
   },
   {
     id: 'kicap-cair',
@@ -183,6 +190,7 @@ export const ingredients: Ingredient[] = [
     name: 'Rempah kurma ayam',
     category: 'Sos & Perasa',
     menuCodes: ['KRM'],
+    quantity: '4 sudu besar',
   },
   {
     id: 'rempah-tumis',
@@ -219,7 +227,7 @@ export const ingredients: Ingredient[] = [
     id: 'gula',
     name: 'Gula',
     category: 'Sos & Perasa',
-    menuCodes: ['PPT', 'PKP', 'BLD', 'KRM', 'BPP'],
+    menuCodes: ['PPT', 'HLA', 'PKP', 'BLD', 'KRM', 'BPP'],
   },
   {
     id: 'serbuk-perasa',
@@ -238,5 +246,6 @@ export const ingredients: Ingredient[] = [
     name: 'Air asam jawa',
     category: 'Lain-lain',
     menuCodes: ['PPT', 'KRM'],
+    quantity: 'Sedikit',
   },
 ];
