@@ -6,11 +6,24 @@ Format ini berdasarkan [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+Tiada perubahan buat masa ini.
+
+## [0.3.1] - 2026-02-19
+
+### Added
+- Motion polish untuk rasa UI lebih moden:
+  - page enter transition (fade + slide ringan)
+  - stagger reveal untuk kad/list utama
+  - animasi pop pada floating cart badge bila bilangan menu berubah
+  - animasi check/toggle untuk item checklist
+- Respect `prefers-reduced-motion` untuk aksesibiliti.
+
 ### Changed
 - Halaman Checklist dipermudah:
   - buang butang `Cart` dalam halaman (guna floating cart sahaja)
   - tukar butang `Reset Tanda` kepada `Untick All`
   - kemas semula susun atur controls supaya lebih ringkas untuk pengguna baru
+- Micro-interactions diperhalus pada butang, chip, kad, dan row checklist (hover/press/feedback).
 
 ## [0.3.0] - 2026-02-19
 
