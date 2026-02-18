@@ -6,11 +6,28 @@ Format ini berdasarkan [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+- Halaman Checklist dipermudah:
+  - buang butang `Cart` dalam halaman (guna floating cart sahaja)
+  - tukar butang `Reset Tanda` kepada `Untick All`
+  - kemas semula susun atur controls supaya lebih ringkas untuk pengguna baru
+
+## [0.3.0] - 2026-02-19
+
 ### Added
 - Auto deploy GitHub Pages melalui GitHub Actions (`deploy-pages.yml`) untuk build + publish `dist` pada setiap push ke `main`.
+- Route baru `#/cart` dan `#/checkout` dalam hash router.
+- Floating cart button (kanan bawah) dengan badge kiraan menu dipilih.
+- Halaman `Cart` khusus untuk semak/buang menu sebelum checkout.
+- Halaman `Checkout` khusus dengan 3 utiliti utama: `Copy`, `CSV`, `Print`.
+- Event sync `selectedmenuschange` dalam storage untuk pastikan badge cart sentiasa terkini.
 
 ### Changed
 - Dokumentasi deployment dalam `README.md` ditukar daripada aliran manual `docs/` kepada aliran auto deploy GitHub Actions.
+- Navbar dipermudah kepada 3 tab utama: `Menu`, `Checklist`, `Resepi`.
+- Aliran belian dipisahkan supaya `Checklist` fokus pada semakan bahan, manakala utiliti export/copy/print dipindah ke `Checkout`.
+- UI tindakan tambah menu pada Plan/Resepi ditukar kepada ikon cart (kurang teks, lebih cepat dibaca di mobile).
+- Gaya global dikemas semula untuk konsistensi kad, butang, chip, cart, dan halaman checkout.
 
 ## [0.2.0] - 2026-02-18
 
