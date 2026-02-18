@@ -51,6 +51,7 @@ export function renderRecipePage(code: string): string {
 
   const selectedMenus = new Set(getSelectedMenus());
   const alreadySelected = selectedMenus.has(recipe.code);
+  const kitchenMode = getKitchenMode();
 
   const ingredientsMarkup = ingredients
     .map(
@@ -59,6 +60,10 @@ export function renderRecipePage(code: string): string {
           ingredient.quantity ? ` <span class="ingredient-qty">(${escapeHtml(ingredient.quantity)})</span>` : ''
         }</li>`,
     )
+    .join('');
+
+  const tagsMarkup = recipe.tags
+    .map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`)
     .join('');
 
   const stepsShortMarkup = recipe.stepsShort.map((step) => `<li>${escapeHtml(step)}</li>`).join('');
@@ -73,6 +78,12 @@ export function renderRecipePage(code: string): string {
         </div>
         <p class="recipe-meta">Prep 15 min • Masak 25 min</p>
         <p class="recipe-summary">${escapeHtml(recipe.summary)}</p>
+        <div class="recipe-tags" aria-label="Tag resepi">${tagsMarkup}</div>
+        <div class="pill-row" aria-label="Ringkasan resepi">
+          <span class="pill is-accent">Bahan: ${ingredients.length}</span>
+          <span class="pill">Ringkas: ${recipe.stepsShort.length} langkah</span>
+          <span class="pill">Penuh: ${recipe.stepsFull.length} langkah</span>
+        </div>
         <div class="recipe-tools print-hidden">
           <button
             type="button"
@@ -82,7 +93,14 @@ export function renderRecipePage(code: string): string {
           >
             ${alreadySelected ? 'Ditambah ✓' : 'Tambah ke Shopping List'}
           </button>
-          <button type="button" class="btn btn-secondary" data-kitchen-toggle>Dapur Mode</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-kitchen-toggle
+            aria-pressed="${kitchenMode}"
+          >
+            ${kitchenMode ? 'Dapur Mode: ON' : 'Dapur Mode'}
+          </button>
           <button type="button" class="btn btn-secondary" data-print-recipe>Print</button>
         </div>
         <p class="recipe-feedback ${alreadySelected ? 'is-visible' : ''}" data-recipe-feedback aria-live="polite">

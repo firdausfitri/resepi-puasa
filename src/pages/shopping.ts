@@ -25,6 +25,8 @@ interface ShoppingViewData {
   selectedMenus: MenuCode[];
   checkedMap: Record<string, boolean>;
   groupedIngredients: ShoppingGroup[];
+  totalIngredientsCount: number;
+  checkedIngredientsCount: number;
 }
 
 function normalizeSelectedMenus(menus: MenuCode[]): MenuCode[] {
@@ -41,6 +43,8 @@ function getShoppingViewData(): ShoppingViewData {
   const selectedMenus = normalizeSelectedMenus(getSelectedMenus());
   const checkedMap = getCheckedIngredientMap();
   const aggregatedIngredients = getIngredientsForMenus(selectedMenus);
+  const checkedIngredientsCount = aggregatedIngredients.filter((ingredient) => checkedMap[ingredient.id] === true)
+    .length;
   const visibleIngredients = showUncheckedOnly
     ? aggregatedIngredients.filter((ingredient) => checkedMap[ingredient.id] !== true)
     : aggregatedIngredients;
@@ -55,6 +59,8 @@ function getShoppingViewData(): ShoppingViewData {
     selectedMenus,
     checkedMap,
     groupedIngredients,
+    totalIngredientsCount: aggregatedIngredients.length,
+    checkedIngredientsCount,
   };
 }
 
@@ -193,11 +199,16 @@ function renderGroupedIngredients(viewData: ShoppingViewData): string {
 
 export function renderShoppingPage(): string {
   const viewData = getShoppingViewData();
+  const hasMenus = viewData.selectedMenus.length > 0;
   const selectedLabel =
-    viewData.selectedMenus.length > 0 ? viewData.selectedMenus.join(', ') : 'Belum ada menu dipilih.';
+    hasMenus ? viewData.selectedMenus.join(', ') : 'Belum ada menu dipilih.';
   const hasItems = hasVisibleItems(viewData);
   const copyFeedbackMessage =
     copyStatus === 'success' ? 'Disalin ✓' : copyStatus === 'error' ? 'Gagal salin' : '';
+  const showProgress = hasMenus && viewData.totalIngredientsCount > 0;
+  const progressMax = Math.max(viewData.totalIngredientsCount, 1);
+  const progressValue = Math.min(viewData.checkedIngredientsCount, progressMax);
+  const progressLabel = showProgress ? `${viewData.checkedIngredientsCount}/${viewData.totalIngredientsCount} ditanda` : '';
 
   const content =
     viewData.selectedMenus.length === 0
@@ -215,6 +226,23 @@ export function renderShoppingPage(): string {
     <section class="page-card shopping-page" data-shopping-page>
       <h1>Shopping List</h1>
       <p class="shopping-line">Menu dipilih: ${escapeHtml(selectedLabel)}</p>
+      <div class="pill-row" aria-label="Ringkasan shopping">
+        <span class="pill is-accent">Bahan: ${viewData.totalIngredientsCount}</span>
+        <span class="pill">Ditanda: ${viewData.checkedIngredientsCount}</span>
+        ${showUncheckedOnly ? '<span class="pill is-warn">Filter: Belum dibeli</span>' : ''}
+      </div>
+      ${
+        hasMenus
+          ? `
+        <div class="shopping-progress" aria-label="Kemajuan shopping">
+          <progress class="progress" value="${progressValue}" max="${progressMax}">
+            ${escapeHtml(progressLabel)}
+          </progress>
+          <p class="progress-meta ${showProgress ? '' : 'print-hidden'}">${escapeHtml(progressLabel)}</p>
+        </div>
+      `
+          : ''
+      }
 
       <div class="menu-filter-row print-hidden">${renderMenuFilterChips(viewData.selectedMenus)}</div>
 

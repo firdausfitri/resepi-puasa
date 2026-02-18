@@ -83,6 +83,8 @@ export function renderPlanPage(): string {
   const todayRecipe = getRecipe(todayPlan.code);
   const todayTitle = todayRecipe?.title ?? `Menu ${todayPlan.code}`;
   const todaySelected = selectedMenus.has(todayPlan.code);
+  const selectedCount = selectedMenus.size;
+  const ramadanMessage = getRamadanMessage();
 
   const cards = WEEK_PLAN.map((item, index) => {
     const recipe = getRecipe(item.code);
@@ -123,7 +125,6 @@ export function renderPlanPage(): string {
     `;
   }).join('');
 
-  const selectedCount = selectedMenus.size;
   const headerNote =
     selectedCount > 0
       ? `${selectedCount} menu telah ditambah ke Shopping List.`
@@ -132,11 +133,16 @@ export function renderPlanPage(): string {
   return `
     <section class="page-card">
       <h1>Plan 7 Hari</h1>
+      <p class="page-subline">Rancang menu seminggu, kemudian terus jana Shopping List.</p>
+      <div class="pill-row" aria-label="Ringkasan plan">
+        <span class="pill is-accent">Dipilih: ${selectedCount}/7</span>
+        <span class="pill">${escapeHtml(ramadanMessage)}</span>
+      </div>
 
       <section class="today-plan-card" data-menu="${escapeHtml(todayPlan.code)}" aria-label="Menu hari ini">
         <p class="today-plan-kicker">Menu Hari Ini</p>
         <h2 class="today-plan-title">${escapeHtml(todayPlan.dayLabel)}: ${escapeHtml(todayTitle)}</h2>
-        <p class="today-plan-meta">${escapeHtml(getRamadanMessage())}</p>
+        <p class="today-plan-meta">${escapeHtml(ramadanMessage)}</p>
         <div class="plan-actions">
           <a class="btn btn-secondary" href="#/recipes/${encodeURIComponent(todayPlan.code)}">Buka Resepi</a>
           <button
@@ -157,7 +163,7 @@ export function renderPlanPage(): string {
         </p>
       </section>
 
-      <p class="plan-intro">Susun menu harian dan terus simpan ke senarai shopping.</p>
+      <p class="plan-intro">Tekan butang tambah pada mana-mana hari untuk simpan ke Shopping List.</p>
       <p class="plan-feedback ${selectedCount > 0 ? 'is-visible' : ''}" data-plan-feedback aria-live="polite">
         ${escapeHtml(headerNote)}
       </p>
