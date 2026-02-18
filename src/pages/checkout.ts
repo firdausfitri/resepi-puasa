@@ -126,7 +126,7 @@ export function renderCheckoutPage(): string {
       ${
         hasItems
           ? `
-        <div class="checkout-actions">
+        <div class="checkout-actions" data-reveal style="--reveal-index:1;">
           <button type="button" class="checkout-tool-btn is-primary" data-checkout-tool="copy">
             ${renderCheckoutIcon('copy')}
             <span>Copy</span>
@@ -148,7 +148,11 @@ export function renderCheckoutPage(): string {
       `
       }
       <a class="btn btn-secondary checkout-back-btn" href="#/cart">Back</a>
-      <p class="cart-checkout-feedback ${checkoutFeedback ? 'is-visible' : ''}" data-checkout-feedback aria-live="polite">
+      <p
+        class="cart-checkout-feedback motion-toast ${checkoutFeedback ? 'is-visible' : ''}"
+        data-checkout-feedback
+        aria-live="polite"
+      >
         ${escapeHtml(checkoutFeedback)}
       </p>
     </section>

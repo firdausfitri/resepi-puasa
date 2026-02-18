@@ -25,6 +25,11 @@ interface ShoppingViewData {
   checkedIngredientsCount: number;
 }
 
+interface RerenderOptions {
+  toggledIngredientId?: string;
+  toggledCheckedState?: boolean;
+}
+
 function normalizeSelectedMenus(menus: MenuCode[]): MenuCode[] {
   const selectedSet = new Set(menus);
   return MENU_CODES.filter((code) => selectedSet.has(code));
@@ -84,7 +89,11 @@ function renderMenuFilterChips(selectedMenus: MenuCode[]): string {
   }).join('');
 }
 
-function renderIngredientRow(ingredient: Ingredient, viewData: ShoppingViewData): string {
+function renderIngredientRow(
+  ingredient: Ingredient,
+  viewData: ShoppingViewData,
+  revealIndex: number,
+): string {
   const isChecked = viewData.checkedMap[ingredient.id] === true;
   const statusLabel = isChecked ? 'sudah dibeli' : 'belum dibeli';
   const menuTags = getVisibleMenuCodes(ingredient, viewData.selectedMenus)
@@ -96,6 +105,8 @@ function renderIngredientRow(ingredient: Ingredient, viewData: ShoppingViewData)
       type="button"
       class="ingredient-row ${isChecked ? 'is-checked' : ''}"
       data-ingredient-id="${escapeHtml(ingredient.id)}"
+      data-reveal
+      style="--reveal-index:${revealIndex};"
       role="checkbox"
       aria-checked="${isChecked}"
       aria-label="${escapeHtml(ingredient.name)} (${statusLabel})"
@@ -136,11 +147,17 @@ function renderGroupedIngredients(viewData: ShoppingViewData): string {
   }
 
   return viewData.groupedIngredients
-    .map((group) => {
-      const rows = group.ingredients.map((ingredient) => renderIngredientRow(ingredient, viewData)).join('');
+    .map((group, groupIndex) => {
+      const groupRevealIndex = Math.min(groupIndex + 1, 8);
+      const rows = group.ingredients
+        .map((ingredient, rowIndex) => {
+          const rowRevealIndex = Math.min(groupRevealIndex + rowIndex + 1, 10);
+          return renderIngredientRow(ingredient, viewData, rowRevealIndex);
+        })
+        .join('');
 
       return `
-        <section class="shopping-category">
+        <section class="shopping-category" data-reveal style="--reveal-index:${groupRevealIndex};">
           <h2 class="shopping-category-title">${escapeHtml(group.category)}</h2>
           <div class="ingredient-group-list">${rows}</div>
         </section>
@@ -193,7 +210,7 @@ export function renderShoppingPage(): string {
 
       <div class="menu-filter-row print-hidden">${renderMenuFilterChips(viewData.selectedMenus)}</div>
 
-      <div class="shopping-controls print-hidden">
+      <div class="shopping-controls print-hidden" data-reveal style="--reveal-index:1;">
         <label class="shopping-toggle">
           <input type="checkbox" data-show-unchecked ${showUncheckedOnly ? 'checked' : ''} />
           <span>Tunjuk belum dibeli sahaja</span>
@@ -217,13 +234,36 @@ function isShoppingPageMounted(container: HTMLElement): boolean {
   return container.querySelector('[data-shopping-page]') !== null;
 }
 
-function rerenderShoppingPage(container: HTMLElement): void {
+function rerenderShoppingPage(container: HTMLElement, options?: RerenderOptions): void {
   if (!isShoppingPageMounted(container)) {
     return;
   }
 
   container.innerHTML = renderShoppingPage();
   setupShoppingPageInteractions(container);
+
+  if (!options?.toggledIngredientId) {
+    return;
+  }
+
+  const row = Array.from(container.querySelectorAll<HTMLElement>('[data-ingredient-id]')).find(
+    (element) => element.dataset.ingredientId === options.toggledIngredientId,
+  );
+
+  if (!row) {
+    return;
+  }
+
+  row.classList.add('is-just-toggled');
+
+  if (options.toggledCheckedState) {
+    row.classList.add('is-just-checked');
+  }
+
+  window.setTimeout(() => {
+    row.classList.remove('is-just-toggled');
+    row.classList.remove('is-just-checked');
+  }, 340);
 }
 
 function toggleMenuSelection(menuCode: MenuCode): void {
@@ -280,8 +320,12 @@ export function setupShoppingPageInteractions(container: HTMLElement): void {
         return;
       }
 
+      const checkedBefore = getCheckedIngredientMap()[ingredientId] === true;
       toggleCheckedIngredient(ingredientId);
-      rerenderShoppingPage(container);
+      rerenderShoppingPage(container, {
+        toggledIngredientId: ingredientId,
+        toggledCheckedState: !checkedBefore,
+      });
     });
   });
 }

@@ -10,8 +10,6 @@ interface WeekPlanItem {
 
 interface MalaysiaDateParts {
   year: number;
-  month: number;
-  day: number;
 }
 
 const WEEK_PLAN: WeekPlanItem[] = [
@@ -45,35 +43,37 @@ function getMalaysiaDateParts(): MalaysiaDateParts {
   const dateParts = new Intl.DateTimeFormat('en-US', {
     timeZone: MALAYSIA_TIMEZONE,
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
   }).formatToParts(new Date());
 
   const year = Number(dateParts.find((part) => part.type === 'year')?.value ?? '0');
-  const month = Number(dateParts.find((part) => part.type === 'month')?.value ?? '0');
-  const day = Number(dateParts.find((part) => part.type === 'day')?.value ?? '0');
-
-  return { year, month, day };
+  return { year };
 }
 
-function toUtcDayNumber(date: MalaysiaDateParts): number {
-  return Math.floor(Date.UTC(date.year, date.month - 1, date.day) / 86400000);
+function getRamadanHijriYear(gregorianYear: number): number | null {
+  const referenceDate = new Date(`${gregorianYear}-02-19T12:00:00+08:00`);
+  const yearPart = new Intl.DateTimeFormat('ms-MY-u-ca-islamic', {
+    timeZone: MALAYSIA_TIMEZONE,
+    year: 'numeric',
+  })
+    .formatToParts(referenceDate)
+    .find((part) => part.type === 'year')?.value;
+
+  if (!yearPart) {
+    return null;
+  }
+
+  const numericYear = Number(yearPart.replace(/[^\d]/g, ''));
+  return Number.isFinite(numericYear) && numericYear > 0 ? numericYear : null;
 }
 
 function getRamadanMessage(): string {
-  const malaysiaToday = getMalaysiaDateParts();
-  const ramadanStartDate: MalaysiaDateParts = {
-    year: malaysiaToday.year,
-    month: 2,
-    day: 19,
-  };
-  const dayDiff = toUtcDayNumber(malaysiaToday) - toUtcDayNumber(ramadanStartDate);
+  const hijriYear = getRamadanHijriYear(getMalaysiaDateParts().year);
 
-  if (dayDiff < 0) {
-    return 'Ramadan belum bermula (1 Ramadan: 19 Februari, Malaysia).';
+  if (hijriYear === null) {
+    return '1 Ramadan';
   }
 
-  return `Hari ke-${dayDiff + 1} Ramadan di Malaysia.`;
+  return `1 Ramadan ${hijriYear}H`;
 }
 
 function renderCartIcon(isSelected: boolean): string {
@@ -113,9 +113,15 @@ export function renderPlanPage(): string {
     const isSelected = selectedMenus.has(item.code);
     const isToday = index === todayIndex;
     const title = recipe?.title ?? `Menu ${item.code}`;
+    const revealIndex = Math.min(index + 1, 8);
 
     return `
-      <article class="plan-card ${isToday ? 'is-today' : ''}" data-menu="${escapeHtml(item.code)}">
+      <article
+        class="plan-card ${isToday ? 'is-today' : ''}"
+        data-menu="${escapeHtml(item.code)}"
+        data-reveal
+        style="--reveal-index:${revealIndex};"
+      >
         <div class="plan-card-head">
           <p class="day-label">${escapeHtml(item.dayLabel)}</p>
           <div class="plan-chip-group">
@@ -154,7 +160,13 @@ export function renderPlanPage(): string {
         <span class="pill">${escapeHtml(ramadanMessage)}</span>
       </div>
 
-      <section class="today-plan-card" data-menu="${escapeHtml(todayPlan.code)}" aria-label="Menu hari ini">
+      <section
+        class="today-plan-card"
+        data-menu="${escapeHtml(todayPlan.code)}"
+        aria-label="Menu hari ini"
+        data-reveal
+        style="--reveal-index:0;"
+      >
         <p class="today-plan-kicker">Menu Hari Ini</p>
         <h2 class="today-plan-title">${escapeHtml(todayPlan.dayLabel)}: ${escapeHtml(todayTitle)}</h2>
         <p class="today-plan-meta">${escapeHtml(ramadanMessage)}</p>

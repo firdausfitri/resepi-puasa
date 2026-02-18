@@ -25,12 +25,13 @@ function renderCartItems(selectedMenus: MenuCode[]): string {
   }
 
   const itemsMarkup = selectedMenus
-    .map((code) => {
+    .map((code, index) => {
       const recipe = getRecipe(code);
       const title = recipe?.title ?? `Menu ${code}`;
+      const revealIndex = Math.min(index + 2, 10);
 
       return `
-        <article class="cart-item">
+        <article class="cart-item" data-reveal style="--reveal-index:${revealIndex};">
           <div class="cart-item-main">
             <span class="menu-code-chip">${escapeHtml(code)}</span>
             <h2 class="cart-item-title">${escapeHtml(title)}</h2>
@@ -66,7 +67,7 @@ export function renderCartPage(): string {
         <span class="pill is-accent">Menu: ${selectedMenus.length}</span>
       </div>
 
-      <div class="cart-actions">
+      <div class="cart-actions" data-reveal style="--reveal-index:1;">
         <button
           type="button"
           class="btn btn-secondary"

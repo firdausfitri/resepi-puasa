@@ -3,9 +3,16 @@ import { escapeHtml } from '../lib/utils';
 
 export function renderRecipesPage(): string {
   const recipeCards = getAllRecipes()
-    .map((recipe) => {
+    .map((recipe, index) => {
+      const revealIndex = Math.min(index + 1, 8);
+
       return `
-        <a class="recipe-list-card" href="#/recipes/${encodeURIComponent(recipe.code)}">
+        <a
+          class="recipe-list-card"
+          href="#/recipes/${encodeURIComponent(recipe.code)}"
+          data-reveal
+          style="--reveal-index:${revealIndex};"
+        >
           <div class="recipe-list-head">
             <span class="menu-code-chip">${escapeHtml(recipe.code)}</span>
             <span class="recipe-list-arrow" aria-hidden="true">→</span>

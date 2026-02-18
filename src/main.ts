@@ -42,18 +42,60 @@ if (!routeView) {
 const routeViewElement: HTMLElement = routeView;
 const floatingCartElement = appElement.querySelector<HTMLElement>('[data-floating-cart]');
 const floatingCartBadgeElement = appElement.querySelector<HTMLElement>('[data-floating-cart-badge]');
+let previousSelectedMenusCount: number | null = null;
+let routeAnimationFrameId: number | null = null;
+let routeEnterResetTimeoutId: number | null = null;
+
+function triggerRouteEnterAnimation(): void {
+  routeViewElement.classList.remove('is-route-entering');
+
+  if (routeAnimationFrameId !== null) {
+    window.cancelAnimationFrame(routeAnimationFrameId);
+  }
+
+  routeAnimationFrameId = window.requestAnimationFrame(() => {
+    routeViewElement.classList.add('is-route-entering');
+
+    if (routeEnterResetTimeoutId !== null) {
+      window.clearTimeout(routeEnterResetTimeoutId);
+    }
+
+    routeEnterResetTimeoutId = window.setTimeout(() => {
+      routeViewElement.classList.remove('is-route-entering');
+      routeEnterResetTimeoutId = null;
+    }, 380);
+
+    routeAnimationFrameId = null;
+  });
+}
 
 function updateFloatingCart(routeName: RouteMatch['name']): void {
   const selectedMenusCount = getSelectedMenus().length;
+  const shouldAnimateCount =
+    previousSelectedMenusCount !== null && previousSelectedMenusCount !== selectedMenusCount;
 
   if (floatingCartBadgeElement) {
     floatingCartBadgeElement.textContent = selectedMenusCount > 99 ? '99+' : String(selectedMenusCount);
     floatingCartBadgeElement.classList.toggle('is-hidden', selectedMenusCount === 0);
+
+    if (shouldAnimateCount) {
+      floatingCartBadgeElement.classList.remove('is-bump');
+      void floatingCartBadgeElement.offsetWidth;
+      floatingCartBadgeElement.classList.add('is-bump');
+    }
   }
 
   if (floatingCartElement) {
     floatingCartElement.classList.toggle('is-active', routeName === 'cart' || routeName === 'checkout');
+
+    if (shouldAnimateCount) {
+      floatingCartElement.classList.remove('is-bump');
+      void floatingCartElement.offsetWidth;
+      floatingCartElement.classList.add('is-bump');
+    }
   }
+
+  previousSelectedMenusCount = selectedMenusCount;
 }
 
 function pageForRoute(match: RouteMatch): string {
@@ -91,6 +133,7 @@ function renderRoute(): void {
   setActiveNav(routeMatch.name);
   updateFloatingCart(routeMatch.name);
   routeViewElement.innerHTML = pageForRoute(routeMatch);
+  triggerRouteEnterAnimation();
 
   if (routeMatch.name === 'plan') {
     setupPlanPageInteractions(routeViewElement);

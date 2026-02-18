@@ -93,7 +93,7 @@ export function renderRecipePage(code: string): string {
 
   return `
     <article class="page-card recipe-page" data-recipe-page data-menu-code="${escapeHtml(recipe.code)}">
-      <header class="recipe-header">
+      <header class="recipe-header" data-reveal style="--reveal-index:0;">
         <div class="recipe-head-row">
           <h1 class="recipe-title">${escapeHtml(recipe.title)}</h1>
           <span class="menu-code-chip">${escapeHtml(recipe.code)}</span>
@@ -130,23 +130,32 @@ export function renderRecipePage(code: string): string {
           </button>
           <button type="button" class="btn btn-secondary" data-print-recipe>Print</button>
         </div>
-        <p class="recipe-feedback ${alreadySelected ? 'is-visible' : ''}" data-recipe-feedback aria-live="polite">
+        <p
+          class="recipe-feedback motion-toast ${alreadySelected ? 'is-visible' : ''}"
+          data-recipe-feedback
+          aria-live="polite"
+        >
           ${alreadySelected ? 'Dalam cart.' : ''}
         </p>
       </header>
 
-      <nav class="recipe-jump-nav print-hidden" aria-label="Pautan pantas">
+      <nav
+        class="recipe-jump-nav print-hidden"
+        aria-label="Pautan pantas"
+        data-reveal
+        style="--reveal-index:1;"
+      >
         <a class="jump-link" href="#bahan" data-jump-link="bahan">Bahan</a>
         <a class="jump-link" href="#langkah" data-jump-link="langkah">Langkah</a>
         <a class="jump-link" href="#nota" data-jump-link="nota">Nota</a>
       </nav>
 
-      <section id="bahan" class="recipe-section">
+      <section id="bahan" class="recipe-section" data-reveal style="--reveal-index:2;">
         <h2 class="section-title">Bahan</h2>
         <ul class="ingredient-list">${ingredientsMarkup}</ul>
       </section>
 
-      <section id="langkah" class="recipe-section">
+      <section id="langkah" class="recipe-section" data-reveal style="--reveal-index:3;">
         <h2 class="section-title">Langkah</h2>
         <h3 class="recipe-subtitle">Langkah Ringkas</h3>
         <ul class="step-list step-list-short">${stepsShortMarkup}</ul>
@@ -159,7 +168,7 @@ export function renderRecipePage(code: string): string {
         </div>
       </section>
 
-      <section id="nota" class="recipe-section">
+      <section id="nota" class="recipe-section" data-reveal style="--reveal-index:4;">
         <h2 class="section-title">Nota</h2>
         <p>Tambah nota sendiri nanti.</p>
       </section>
@@ -188,7 +197,11 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
     }
   };
 
-  const applyCartButtonState = (isSelected: boolean, code: MenuCode): void => {
+  const applyCartButtonState = (
+    isSelected: boolean,
+    code: MenuCode,
+    shouldAnimate: boolean = false,
+  ): void => {
     if (!addShoppingButton) {
       return;
     }
@@ -200,6 +213,12 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
       isSelected ? `Buang ${code} dari cart` : `Tambah ${code} ke cart`,
     );
     addShoppingButton.innerHTML = renderCartIcon(isSelected);
+
+    if (shouldAnimate) {
+      addShoppingButton.classList.remove('is-flash');
+      void addShoppingButton.offsetWidth;
+      addShoppingButton.classList.add('is-flash');
+    }
 
     if (feedbackElement) {
       feedbackElement.classList.toggle('is-visible', isSelected);
@@ -235,7 +254,7 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
       }
 
       const updatedMenus = toggleSelectedMenu(code);
-      applyCartButtonState(updatedMenus.includes(code), code);
+      applyCartButtonState(updatedMenus.includes(code), code, true);
     });
   }
 
