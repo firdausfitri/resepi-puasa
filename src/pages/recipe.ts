@@ -1,10 +1,10 @@
 import { MENU_CODES, type Ingredient, type MenuCode } from '../data/types';
 import { getAllIngredients, getRecipe } from '../lib/data';
 import {
-  addSelectedMenu,
   getKitchenMode,
   getSelectedMenus,
   setKitchenMode,
+  toggleSelectedMenu,
 } from '../lib/storage';
 import { escapeHtml } from '../lib/utils';
 
@@ -28,6 +28,28 @@ function renderRecipeNotFound(code: string): string {
       <p>Resepi tidak dijumpai.</p>
       <p><a class="chip-link" href="#/plan">Kembali ke Plan 7 Hari</a></p>
     </section>
+  `;
+}
+
+function renderCartIcon(isSelected: boolean): string {
+  if (isSelected) {
+    return `
+      <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 6h15l-1.5 9h-12z" />
+        <path d="M6 6l-2-3H1" />
+        <path d="M9 20a1.5 1.5 0 1 0 0.001 0zM18 20a1.5 1.5 0 1 0 0.001 0z" />
+        <path d="M10 12.8l1.8 1.8 3.3-3.3" />
+      </svg>
+    `;
+  }
+
+  return `
+    <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 6h15l-1.5 9h-12z" />
+      <path d="M6 6l-2-3H1" />
+      <path d="M9 20a1.5 1.5 0 1 0 0.001 0zM18 20a1.5 1.5 0 1 0 0.001 0z" />
+      <path d="M13 11v4M11 13h4" />
+    </svg>
   `;
 }
 
@@ -87,11 +109,16 @@ export function renderRecipePage(code: string): string {
         <div class="recipe-tools print-hidden">
           <button
             type="button"
-            class="btn btn-primary"
+            class="icon-btn cart-btn ${alreadySelected ? 'is-added' : ''}"
             data-add-shopping
-            ${alreadySelected ? 'disabled' : ''}
+            aria-pressed="${alreadySelected}"
+            aria-label="${
+              alreadySelected
+                ? `Buang ${escapeHtml(recipe.code)} dari cart`
+                : `Tambah ${escapeHtml(recipe.code)} ke cart`
+            }"
           >
-            ${alreadySelected ? 'Ditambah ✓' : 'Tambah ke Shopping List'}
+            ${renderCartIcon(alreadySelected)}
           </button>
           <button
             type="button"
@@ -104,7 +131,7 @@ export function renderRecipePage(code: string): string {
           <button type="button" class="btn btn-secondary" data-print-recipe>Print</button>
         </div>
         <p class="recipe-feedback ${alreadySelected ? 'is-visible' : ''}" data-recipe-feedback aria-live="polite">
-          ${alreadySelected ? 'Ditambah ✓ Menu ini sudah ada dalam Shopping List.' : ''}
+          ${alreadySelected ? 'Dalam cart.' : ''}
         </p>
       </header>
 
@@ -161,6 +188,25 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
     }
   };
 
+  const applyCartButtonState = (isSelected: boolean, code: MenuCode): void => {
+    if (!addShoppingButton) {
+      return;
+    }
+
+    addShoppingButton.classList.toggle('is-added', isSelected);
+    addShoppingButton.setAttribute('aria-pressed', String(isSelected));
+    addShoppingButton.setAttribute(
+      'aria-label',
+      isSelected ? `Buang ${code} dari cart` : `Tambah ${code} ke cart`,
+    );
+    addShoppingButton.innerHTML = renderCartIcon(isSelected);
+
+    if (feedbackElement) {
+      feedbackElement.classList.toggle('is-visible', isSelected);
+      feedbackElement.textContent = isSelected ? 'Dalam cart.' : '';
+    }
+  };
+
   const kitchenMode = getKitchenMode();
   toggleKitchenModeOnBody(kitchenMode);
   applyKitchenButtonLabel(kitchenMode);
@@ -188,14 +234,8 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
         return;
       }
 
-      addSelectedMenu(code);
-      addShoppingButton.disabled = true;
-      addShoppingButton.textContent = 'Ditambah ✓';
-
-      if (feedbackElement) {
-        feedbackElement.classList.add('is-visible');
-        feedbackElement.textContent = `Ditambah ✓ ${code} dimasukkan ke Shopping List.`;
-      }
+      const updatedMenus = toggleSelectedMenu(code);
+      applyCartButtonState(updatedMenus.includes(code), code);
     });
   }
 

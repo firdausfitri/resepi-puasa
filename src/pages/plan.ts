@@ -1,6 +1,6 @@
 import { MENU_CODES, type MenuCode } from '../data/types';
 import { getRecipe } from '../lib/data';
-import { addSelectedMenu, getSelectedMenus } from '../lib/storage';
+import { getSelectedMenus, toggleSelectedMenu } from '../lib/storage';
 import { escapeHtml } from '../lib/utils';
 
 interface WeekPlanItem {
@@ -76,6 +76,28 @@ function getRamadanMessage(): string {
   return `Hari ke-${dayDiff + 1} Ramadan di Malaysia.`;
 }
 
+function renderCartIcon(isSelected: boolean): string {
+  if (isSelected) {
+    return `
+      <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 6h15l-1.5 9h-12z" />
+        <path d="M6 6l-2-3H1" />
+        <path d="M9 20a1.5 1.5 0 1 0 0.001 0zM18 20a1.5 1.5 0 1 0 0.001 0z" />
+        <path d="M10 12.8l1.8 1.8 3.3-3.3" />
+      </svg>
+    `;
+  }
+
+  return `
+    <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 6h15l-1.5 9h-12z" />
+      <path d="M6 6l-2-3H1" />
+      <path d="M9 20a1.5 1.5 0 1 0 0.001 0zM18 20a1.5 1.5 0 1 0 0.001 0z" />
+      <path d="M13 11v4M11 13h4" />
+    </svg>
+  `;
+}
+
 export function renderPlanPage(): string {
   const selectedMenus = new Set(getSelectedMenus());
   const todayIndex = getMalaysiaWeekIndex();
@@ -107,33 +129,26 @@ export function renderPlanPage(): string {
           <a class="btn btn-secondary" href="#/recipes/${encodeURIComponent(item.code)}">Buka Resepi</a>
           <button
             type="button"
-            class="btn btn-primary"
-            data-add-menu="${escapeHtml(item.code)}"
-            ${isSelected ? 'disabled' : ''}
+            class="icon-btn cart-btn ${isSelected ? 'is-added' : ''}"
+            data-toggle-menu="${escapeHtml(item.code)}"
+            aria-pressed="${isSelected}"
+            aria-label="${
+              isSelected
+                ? `Buang ${escapeHtml(item.code)} dari cart`
+                : `Tambah ${escapeHtml(item.code)} ke cart`
+            }"
           >
-            ${isSelected ? 'Ditambah ✓' : 'Tambah ke Shopping List'}
+            ${renderCartIcon(isSelected)}
           </button>
         </div>
-        <p
-          class="plan-added-note ${isSelected ? 'is-visible' : ''}"
-          data-added-note
-          data-added-menu="${escapeHtml(item.code)}"
-        >
-          Ditambah ✓ Menu ini sudah ada dalam Shopping List.
-        </p>
       </article>
     `;
   }).join('');
 
-  const headerNote =
-    selectedCount > 0
-      ? `${selectedCount} menu telah ditambah ke Shopping List.`
-      : 'Tekan "Tambah ke Shopping List" untuk simpan menu dipilih.';
-
   return `
     <section class="page-card">
       <h1>Plan 7 Hari</h1>
-      <p class="page-subline">Rancang menu seminggu, kemudian terus jana Shopping List.</p>
+      <p class="page-subline">Pilih menu ikut hari, kemudian semak di Cart.</p>
       <div class="pill-row" aria-label="Ringkasan plan">
         <span class="pill is-accent">Dipilih: ${selectedCount}/7</span>
         <span class="pill">${escapeHtml(ramadanMessage)}</span>
@@ -147,59 +162,36 @@ export function renderPlanPage(): string {
           <a class="btn btn-secondary" href="#/recipes/${encodeURIComponent(todayPlan.code)}">Buka Resepi</a>
           <button
             type="button"
-            class="btn btn-primary"
-            data-add-menu="${escapeHtml(todayPlan.code)}"
-            ${todaySelected ? 'disabled' : ''}
+            class="icon-btn cart-btn ${todaySelected ? 'is-added' : ''}"
+            data-toggle-menu="${escapeHtml(todayPlan.code)}"
+            aria-pressed="${todaySelected}"
+            aria-label="${
+              todaySelected
+                ? `Buang ${escapeHtml(todayPlan.code)} dari cart`
+                : `Tambah ${escapeHtml(todayPlan.code)} ke cart`
+            }"
           >
-            ${todaySelected ? 'Ditambah ✓' : 'Tambah ke Shopping List'}
+            ${renderCartIcon(todaySelected)}
           </button>
         </div>
-        <p
-          class="plan-added-note ${todaySelected ? 'is-visible' : ''}"
-          data-added-note
-          data-added-menu="${escapeHtml(todayPlan.code)}"
-        >
-          Ditambah ✓ Menu ini sudah ada dalam Shopping List.
-        </p>
       </section>
-
-      <p class="plan-intro">Tekan butang tambah pada mana-mana hari untuk simpan ke Shopping List.</p>
-      <p class="plan-feedback ${selectedCount > 0 ? 'is-visible' : ''}" data-plan-feedback aria-live="polite">
-        ${escapeHtml(headerNote)}
-      </p>
       <div class="plan-grid">${cards}</div>
     </section>
   `;
 }
 
 export function setupPlanPageInteractions(container: HTMLElement): void {
-  const feedbackElement = container.querySelector<HTMLElement>('[data-plan-feedback]');
-
-  container.querySelectorAll<HTMLButtonElement>('[data-add-menu]').forEach((button) => {
+  container.querySelectorAll<HTMLButtonElement>('[data-toggle-menu]').forEach((button) => {
     button.addEventListener('click', () => {
-      const code = button.dataset.addMenu;
+      const code = button.dataset.toggleMenu;
 
       if (!code || !isMenuCode(code)) {
         return;
       }
 
-      const updatedMenus = addSelectedMenu(code);
-
-      container.querySelectorAll<HTMLButtonElement>(`[data-add-menu="${code}"]`).forEach((targetButton) => {
-        targetButton.disabled = true;
-        targetButton.textContent = 'Ditambah ✓';
-      });
-
-      container
-        .querySelectorAll<HTMLElement>(`[data-added-note][data-added-menu="${code}"]`)
-        .forEach((addedNoteElement) => {
-          addedNoteElement.classList.add('is-visible');
-        });
-
-      if (feedbackElement) {
-        feedbackElement.classList.add('is-visible');
-        feedbackElement.textContent = `Ditambah ✓ ${code}. Jumlah menu dipilih: ${updatedMenus.length}.`;
-      }
+      toggleSelectedMenu(code);
+      container.innerHTML = renderPlanPage();
+      setupPlanPageInteractions(container);
     });
   });
 }

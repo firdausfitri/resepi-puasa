@@ -58,6 +58,14 @@ function writeMenusToStorage(menus: MenuCode[]): void {
   }
 }
 
+function dispatchSelectedMenusChange(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dispatchEvent(new Event('selectedmenuschange'));
+}
+
 function normalizeCheckedIngredientMap(value: unknown): Record<string, boolean> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return {};
@@ -119,12 +127,29 @@ export function setSelectedMenus(menus: MenuCode[]): void {
   const normalizedMenus = normalizeMenus(menus);
   memoryMenus = normalizedMenus;
   writeMenusToStorage(normalizedMenus);
+  dispatchSelectedMenusChange();
 }
 
 export function addSelectedMenu(code: MenuCode): MenuCode[] {
   const updatedMenus = normalizeMenus([...getSelectedMenus(), code]);
   setSelectedMenus(updatedMenus);
   return updatedMenus;
+}
+
+export function removeSelectedMenu(code: MenuCode): MenuCode[] {
+  const updatedMenus = getSelectedMenus().filter((menuCode) => menuCode !== code);
+  setSelectedMenus(updatedMenus);
+  return updatedMenus;
+}
+
+export function toggleSelectedMenu(code: MenuCode): MenuCode[] {
+  const selectedMenus = getSelectedMenus();
+
+  if (selectedMenus.includes(code)) {
+    return removeSelectedMenu(code);
+  }
+
+  return addSelectedMenu(code);
 }
 
 export function clearSelectedMenus(): void {
@@ -139,6 +164,8 @@ export function clearSelectedMenus(): void {
   } catch {
     // Fallback memori sahaja.
   }
+
+  dispatchSelectedMenusChange();
 }
 
 export function getKitchenMode(): boolean {

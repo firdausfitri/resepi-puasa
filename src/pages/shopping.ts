@@ -1,10 +1,8 @@
 import type { Ingredient, MenuCode } from '../data/types';
 import { MENU_CODES } from '../data/types';
 import { getIngredientsForMenus, groupIngredientsByCategory } from '../lib/data';
-import { copyTextToClipboard, downloadTextFile, toCsv } from '../lib/export';
 import {
   clearCheckedIngredients,
-  clearSelectedMenus,
   getCheckedIngredientMap,
   getSelectedMenus,
   setSelectedMenus,
@@ -13,8 +11,6 @@ import {
 import { escapeHtml } from '../lib/utils';
 
 let showUncheckedOnly = false;
-let copyStatus: 'idle' | 'success' | 'error' = 'idle';
-let copyStatusTimeoutId: number | null = null;
 
 interface ShoppingGroup {
   category: string;
@@ -43,8 +39,9 @@ function getShoppingViewData(): ShoppingViewData {
   const selectedMenus = normalizeSelectedMenus(getSelectedMenus());
   const checkedMap = getCheckedIngredientMap();
   const aggregatedIngredients = getIngredientsForMenus(selectedMenus);
-  const checkedIngredientsCount = aggregatedIngredients.filter((ingredient) => checkedMap[ingredient.id] === true)
-    .length;
+  const checkedIngredientsCount = aggregatedIngredients.filter(
+    (ingredient) => checkedMap[ingredient.id] === true,
+  ).length;
   const visibleIngredients = showUncheckedOnly
     ? aggregatedIngredients.filter((ingredient) => checkedMap[ingredient.id] !== true)
     : aggregatedIngredients;
@@ -66,51 +63,6 @@ function getShoppingViewData(): ShoppingViewData {
 
 function hasVisibleItems(viewData: ShoppingViewData): boolean {
   return viewData.groupedIngredients.some((group) => group.ingredients.length > 0);
-}
-
-function getCopyText(viewData: ShoppingViewData): string {
-  const menuLine = viewData.selectedMenus.length > 0 ? viewData.selectedMenus.join(', ') : '-';
-  const lines: string[] = ['Shopping List', `Menu: ${menuLine}`, ''];
-
-  if (!hasVisibleItems(viewData)) {
-    lines.push('Tiada bahan untuk dipaparkan.');
-    return lines.join('\n');
-  }
-
-  viewData.groupedIngredients.forEach((group, groupIndex) => {
-    lines.push(`[${group.category}]`);
-
-    group.ingredients.forEach((ingredient) => {
-      const isChecked = viewData.checkedMap[ingredient.id] === true;
-      const prefix = isChecked ? '✅ ' : '☐ ';
-      const quantitySuffix = ingredient.quantity ? ` (${ingredient.quantity})` : '';
-      lines.push(`${prefix}${ingredient.name}${quantitySuffix}`);
-    });
-
-    if (groupIndex < viewData.groupedIngredients.length - 1) {
-      lines.push('');
-    }
-  });
-
-  return lines.join('\n');
-}
-
-function getCsvContent(viewData: ShoppingViewData): string {
-  const rows: string[][] = [['category', 'item', 'quantity', 'menuCodes', 'checked']];
-
-  viewData.groupedIngredients.forEach((group) => {
-    group.ingredients.forEach((ingredient) => {
-      rows.push([
-        group.category,
-        ingredient.name,
-        ingredient.quantity ?? '',
-        getVisibleMenuCodes(ingredient, viewData.selectedMenus).join('|'),
-        viewData.checkedMap[ingredient.id] === true ? 'TRUE' : 'FALSE',
-      ]);
-    });
-  });
-
-  return toCsv(rows);
 }
 
 function renderMenuFilterChips(selectedMenus: MenuCode[]): string {
@@ -178,7 +130,7 @@ function renderGroupedIngredients(viewData: ShoppingViewData): string {
   if (!hasVisibleItems(viewData)) {
     return `
       <div class="shopping-empty-state">
-        <p>${showUncheckedOnly ? 'Semua bahan telah ditanda dibeli.' : 'Tiada bahan untuk pilihan menu semasa.'}</p>
+        <p>${showUncheckedOnly ? 'Semua bahan sudah ditanda.' : 'Tiada bahan untuk pilihan menu semasa.'}</p>
       </div>
     `;
   }
@@ -200,45 +152,40 @@ function renderGroupedIngredients(viewData: ShoppingViewData): string {
 export function renderShoppingPage(): string {
   const viewData = getShoppingViewData();
   const hasMenus = viewData.selectedMenus.length > 0;
-  const selectedLabel =
-    hasMenus ? viewData.selectedMenus.join(', ') : 'Belum ada menu dipilih.';
-  const hasItems = hasVisibleItems(viewData);
-  const copyFeedbackMessage =
-    copyStatus === 'success' ? 'Disalin ✓' : copyStatus === 'error' ? 'Gagal salin' : '';
   const showProgress = hasMenus && viewData.totalIngredientsCount > 0;
   const progressMax = Math.max(viewData.totalIngredientsCount, 1);
   const progressValue = Math.min(viewData.checkedIngredientsCount, progressMax);
-  const progressLabel = showProgress ? `${viewData.checkedIngredientsCount}/${viewData.totalIngredientsCount} ditanda` : '';
+  const progressLabel = showProgress
+    ? `${viewData.checkedIngredientsCount}/${viewData.totalIngredientsCount} selesai`
+    : '';
 
-  const content =
-    viewData.selectedMenus.length === 0
-      ? `
-        <div class="shopping-empty-state">
-          <p>Belum ada menu dipilih. Pilih menu dahulu untuk jana senarai bahan.</p>
-          <button type="button" class="btn btn-primary" data-shopping-action="select-all-empty">
-            Pilih Semua (7)
-          </button>
-        </div>
-      `
-      : renderGroupedIngredients(viewData);
+  const content = hasMenus
+    ? renderGroupedIngredients(viewData)
+    : `
+      <div class="shopping-empty-state">
+        <p>Belum ada menu dipilih. Pilih kod menu pada chip di atas.</p>
+      </div>
+    `;
 
   return `
     <section class="page-card shopping-page" data-shopping-page>
-      <h1>Shopping List</h1>
-      <p class="shopping-line">Menu dipilih: ${escapeHtml(selectedLabel)}</p>
-      <div class="pill-row" aria-label="Ringkasan shopping">
-        <span class="pill is-accent">Bahan: ${viewData.totalIngredientsCount}</span>
-        <span class="pill">Ditanda: ${viewData.checkedIngredientsCount}</span>
-        ${showUncheckedOnly ? '<span class="pill is-warn">Filter: Belum dibeli</span>' : ''}
+      <h1>Checklist</h1>
+      <p class="shopping-line">Tap bahan untuk tanda sudah beli.</p>
+      <div class="pill-row" aria-label="Ringkasan checklist">
+        <span class="pill is-accent">Menu: ${viewData.selectedMenus.length}</span>
+        <span class="pill">Bahan: ${viewData.totalIngredientsCount}</span>
+        <span class="pill">Selesai: ${viewData.checkedIngredientsCount}</span>
+        ${showUncheckedOnly ? '<span class="pill is-warn">Belum dibeli sahaja</span>' : ''}
       </div>
+
       ${
-        hasMenus
+        showProgress
           ? `
-        <div class="shopping-progress" aria-label="Kemajuan shopping">
+        <div class="shopping-progress" aria-label="Kemajuan checklist">
           <progress class="progress" value="${progressValue}" max="${progressMax}">
             ${escapeHtml(progressLabel)}
           </progress>
-          <p class="progress-meta ${showProgress ? '' : 'print-hidden'}">${escapeHtml(progressLabel)}</p>
+          <p class="progress-meta">${escapeHtml(progressLabel)}</p>
         </div>
       `
           : ''
@@ -246,42 +193,20 @@ export function renderShoppingPage(): string {
 
       <div class="menu-filter-row print-hidden">${renderMenuFilterChips(viewData.selectedMenus)}</div>
 
-      <div class="shopping-actions print-hidden">
-        <button type="button" class="btn btn-primary" data-shopping-action="select-all">
-          Pilih Semua (7)
-        </button>
-        <button type="button" class="btn btn-secondary" data-shopping-action="clear-menu">
-          Clear Menu
-        </button>
-        <button type="button" class="btn btn-secondary" data-shopping-action="reset-checks">
-          Reset Tanda
-        </button>
-      </div>
-
-      <div class="shopping-tools print-hidden">
-        <button type="button" class="btn btn-secondary" data-shopping-tool="copy" ${hasItems ? '' : 'disabled'}>
-          Copy
-        </button>
-        <button type="button" class="btn btn-secondary" data-shopping-tool="csv" ${hasItems ? '' : 'disabled'}>
-          Export CSV
-        </button>
-        <button type="button" class="btn btn-secondary" data-shopping-tool="print" ${hasItems ? '' : 'disabled'}>
-          Print
+      <div class="shopping-controls print-hidden">
+        <label class="shopping-toggle">
+          <input type="checkbox" data-show-unchecked ${showUncheckedOnly ? 'checked' : ''} />
+          <span>Tunjuk belum dibeli sahaja</span>
+        </label>
+        <button
+          type="button"
+          class="btn btn-secondary shopping-untick-btn"
+          data-shopping-action="untick-all"
+          ${viewData.checkedIngredientsCount > 0 ? '' : 'disabled'}
+        >
+          Untick All
         </button>
       </div>
-
-      <p
-        class="shopping-copy-feedback print-hidden ${copyStatus !== 'idle' ? 'is-visible' : ''}"
-        data-copy-feedback
-        aria-live="polite"
-      >
-        ${escapeHtml(copyFeedbackMessage)}
-      </p>
-
-      <label class="shopping-toggle print-hidden">
-        <input type="checkbox" data-show-unchecked ${showUncheckedOnly ? 'checked' : ''} />
-        <span>Tunjuk belum dibeli sahaja</span>
-      </label>
 
       <div class="shopping-content">${content}</div>
     </section>
@@ -299,37 +224,6 @@ function rerenderShoppingPage(container: HTMLElement): void {
 
   container.innerHTML = renderShoppingPage();
   setupShoppingPageInteractions(container);
-}
-
-function setCopyStatusWithReset(status: 'success' | 'error', container: HTMLElement): void {
-  copyStatus = status;
-  updateCopyFeedbackElement(container);
-
-  if (copyStatusTimeoutId !== null) {
-    window.clearTimeout(copyStatusTimeoutId);
-  }
-
-  copyStatusTimeoutId = window.setTimeout(() => {
-    copyStatus = 'idle';
-    copyStatusTimeoutId = null;
-    updateCopyFeedbackElement(container);
-  }, 1500);
-}
-
-function updateCopyFeedbackElement(container: HTMLElement): void {
-  if (!isShoppingPageMounted(container)) {
-    return;
-  }
-
-  const feedbackElement = container.querySelector<HTMLElement>('[data-copy-feedback]');
-
-  if (!feedbackElement) {
-    return;
-  }
-
-  const text = copyStatus === 'success' ? 'Disalin ✓' : copyStatus === 'error' ? 'Gagal salin' : '';
-  feedbackElement.textContent = text;
-  feedbackElement.classList.toggle('is-visible', copyStatus !== 'idle');
 }
 
 function toggleMenuSelection(menuCode: MenuCode): void {
@@ -362,58 +256,18 @@ export function setupShoppingPageInteractions(container: HTMLElement): void {
     button.addEventListener('click', () => {
       const action = button.dataset.shoppingAction;
 
-      if (action === 'select-all' || action === 'select-all-empty') {
-        setSelectedMenus([...MENU_CODES]);
-        rerenderShoppingPage(container);
-        return;
-      }
-
-      if (action === 'clear-menu') {
-        clearSelectedMenus();
-        rerenderShoppingPage(container);
-        return;
-      }
-
-      if (action === 'reset-checks') {
+      if (action === 'untick-all') {
         clearCheckedIngredients();
         rerenderShoppingPage(container);
       }
     });
   });
 
-  container.querySelectorAll<HTMLButtonElement>('[data-shopping-tool]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      const tool = button.dataset.shoppingTool;
-      const viewData = getShoppingViewData();
+  const showUncheckedInput = container.querySelector<HTMLInputElement>('[data-show-unchecked]');
 
-      if (!hasVisibleItems(viewData)) {
-        return;
-      }
-
-      if (tool === 'copy') {
-        const copyText = getCopyText(viewData);
-        const isCopied = await copyTextToClipboard(copyText);
-        setCopyStatusWithReset(isCopied ? 'success' : 'error', container);
-        return;
-      }
-
-      if (tool === 'csv') {
-        const csvContent = getCsvContent(viewData);
-        downloadTextFile('shopping_list.csv', csvContent, 'text/csv;charset=utf-8');
-        return;
-      }
-
-      if (tool === 'print') {
-        window.print();
-      }
-    });
-  });
-
-  const uncheckedToggle = container.querySelector<HTMLInputElement>('[data-show-unchecked]');
-
-  if (uncheckedToggle) {
-    uncheckedToggle.addEventListener('change', () => {
-      showUncheckedOnly = uncheckedToggle.checked;
+  if (showUncheckedInput) {
+    showUncheckedInput.addEventListener('change', () => {
+      showUncheckedOnly = showUncheckedInput.checked;
       rerenderShoppingPage(container);
     });
   }

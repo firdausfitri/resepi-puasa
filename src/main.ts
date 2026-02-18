@@ -1,5 +1,8 @@
 import { renderNavbar, setActiveNav } from './components/navbar';
 import { resolveHashRoute, type RouteMatch } from './lib/router';
+import { getSelectedMenus } from './lib/storage';
+import { renderCartPage, setupCartPageInteractions } from './pages/cart';
+import { renderCheckoutPage, setupCheckoutPageInteractions } from './pages/checkout';
 import { renderPlanPage, setupPlanPageInteractions } from './pages/plan';
 import { renderRecipePage, setupRecipePageInteractions } from './pages/recipe';
 import { renderRecipesPage } from './pages/recipes';
@@ -19,6 +22,14 @@ appElement.innerHTML = `
       ${renderNavbar()}
     </header>
     <main id="route-view" class="route-view" aria-live="polite"></main>
+    <a class="floating-cart print-hidden" href="#/cart" data-floating-cart aria-label="Buka cart menu">
+      <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 6h15l-1.5 9h-12z" />
+        <path d="M6 6l-2-3H1" />
+        <path d="M9 20a1.5 1.5 0 1 0 0.001 0zM18 20a1.5 1.5 0 1 0 0.001 0z" />
+      </svg>
+      <span class="floating-cart-badge" data-floating-cart-badge>0</span>
+    </a>
   </div>
 `;
 
@@ -29,6 +40,21 @@ if (!routeView) {
 }
 
 const routeViewElement: HTMLElement = routeView;
+const floatingCartElement = appElement.querySelector<HTMLElement>('[data-floating-cart]');
+const floatingCartBadgeElement = appElement.querySelector<HTMLElement>('[data-floating-cart-badge]');
+
+function updateFloatingCart(routeName: RouteMatch['name']): void {
+  const selectedMenusCount = getSelectedMenus().length;
+
+  if (floatingCartBadgeElement) {
+    floatingCartBadgeElement.textContent = selectedMenusCount > 99 ? '99+' : String(selectedMenusCount);
+    floatingCartBadgeElement.classList.toggle('is-hidden', selectedMenusCount === 0);
+  }
+
+  if (floatingCartElement) {
+    floatingCartElement.classList.toggle('is-active', routeName === 'cart' || routeName === 'checkout');
+  }
+}
 
 function pageForRoute(match: RouteMatch): string {
   if (match.name === 'plan') {
@@ -43,6 +69,14 @@ function pageForRoute(match: RouteMatch): string {
     return renderRecipesPage();
   }
 
+  if (match.name === 'cart') {
+    return renderCartPage();
+  }
+
+  if (match.name === 'checkout') {
+    return renderCheckoutPage();
+  }
+
   return renderRecipePage(match.params.code ?? '');
 }
 
@@ -55,6 +89,7 @@ function renderRoute(): void {
   }
 
   setActiveNav(routeMatch.name);
+  updateFloatingCart(routeMatch.name);
   routeViewElement.innerHTML = pageForRoute(routeMatch);
 
   if (routeMatch.name === 'plan') {
@@ -65,12 +100,29 @@ function renderRoute(): void {
     setupShoppingPageInteractions(routeViewElement);
   }
 
+  if (routeMatch.name === 'cart') {
+    setupCartPageInteractions(routeViewElement);
+  }
+
+  if (routeMatch.name === 'checkout') {
+    setupCheckoutPageInteractions(routeViewElement);
+  }
+
   if (routeMatch.name === 'recipe') {
     setupRecipePageInteractions(routeViewElement);
   }
 }
 
 window.addEventListener('hashchange', renderRoute);
+window.addEventListener('selectedmenuschange', () => {
+  const routeMatch = resolveHashRoute(window.location.hash);
+
+  if (!routeMatch) {
+    return;
+  }
+
+  updateFloatingCart(routeMatch.name);
+});
 
 if (!window.location.hash || !resolveHashRoute(window.location.hash)) {
   window.location.hash = '/plan';

@@ -1,4 +1,4 @@
-export type RouteName = 'plan' | 'shopping' | 'recipes' | 'recipe';
+export type RouteName = 'plan' | 'shopping' | 'recipes' | 'recipe' | 'cart' | 'checkout';
 
 export interface RouteMatch {
   name: RouteName;
@@ -26,6 +26,14 @@ export function resolveHashRoute(hashValue: string): RouteMatch | null {
 
   if (path === '/shopping') {
     return { name: 'shopping', params: {} };
+  }
+
+  if (path === '/cart') {
+    return { name: 'cart', params: {} };
+  }
+
+  if (path === '/checkout') {
+    return { name: 'checkout', params: {} };
   }
 
   if (path === '/recipes') {
