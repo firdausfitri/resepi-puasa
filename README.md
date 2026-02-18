@@ -81,9 +81,26 @@ Diurus oleh `src/lib/storage.ts`:
 3. Tiada rewrite rules diperlukan sebab route guna hash (`#/...`).
 
 ### GitHub Pages
-1. Jalankan `npm run build`
-2. Publish kandungan `dist` ke branch/pages source pilihan anda.
-3. Hash route kekal berfungsi tanpa rewrite.
+Kaedah paling mudah (tanpa GitHub Actions scope tambahan) ialah guna folder `docs/` di branch `main`.
+
+1. Jana fail pages:
+   ```bash
+   npm run build:docs
+   ```
+2. Commit + push perubahan (termasuk `docs/`):
+   ```bash
+   git add .
+   git commit -m "Update docs build"
+   git push
+   ```
+3. Di GitHub repo: `Settings` -> `Pages`
+   - `Build and deployment`: `Deploy from a branch`
+   - `Branch`: `main`
+   - `Folder`: `/docs`
+4. Simpan, kemudian tunggu deployment siap.
+
+URL Pages biasanya:
+`https://<username>.github.io/<repo>/`
 
 Nota base path:
 - `vite.config.ts` guna `base: './'` supaya asset path relatif dan selamat untuk root atau subpath (`/<repo>/`).

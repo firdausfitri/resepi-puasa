@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:docs": "npm run build && rm -rf docs && mkdir -p docs && cp -R dist/. docs/"
   },
   "devDependencies": {
     "typescript": "~5.9.3",
