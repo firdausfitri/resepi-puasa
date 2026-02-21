@@ -554,6 +554,11 @@ body {
   background: #f5fbf8;
 }
 
+.plan-card.is-selected {
+  border-color: rgba(15, 95, 80, 0.45);
+  background: rgba(233, 244, 239, 0.78);
+}
+
 .today-plan-card {
   margin-top: 0.45rem;
   border: 1px solid rgba(15, 95, 80, 0.35);
@@ -625,6 +630,20 @@ body {
   font-weight: 800;
 }
 
+.plan-cart-status {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.03rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 95, 80, 0.32);
+  background: rgba(233, 244, 239, 0.92);
+  color: #0b4a3f;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .menu-code-chip {
   display: inline-flex;
   min-height: 30px;
@@ -691,36 +710,47 @@ body {
   margin: 0.4rem 0 0;
 }
 
+.recipe-video-section {
+  margin-top: 0.95rem;
+  border: 1px solid rgba(226, 210, 188, 0.95);
+  border-radius: 0.95rem;
+  padding: 0.72rem;
+  background: rgba(255, 253, 247, 0.78);
+}
+
+.recipe-video-embed {
+  margin-top: 0.5rem;
+  width: 100%;
+  border-radius: 0.8rem;
+  overflow: clip;
+  background: #0f1824;
+}
+
+.recipe-video-embed iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border: 0;
+  overflow: hidden;
+}
+
 .recipe-tools {
-  margin-top: 0.9rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.55rem;
+  margin-top: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .recipe-tools .icon-btn {
-  justify-self: start;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 0.68rem;
 }
 
-.recipe-tags {
-  margin-top: 0.65rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.tag-chip {
-  display: inline-flex;
-  min-height: 30px;
-  align-items: center;
-  justify-content: center;
-  padding: 0.1rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid rgba(226, 210, 188, 0.95);
+.recipe-print-btn {
+  color: var(--ink);
   background: rgba(244, 234, 219, 0.78);
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: #203244;
 }
 
 .recipe-feedback {
@@ -1377,10 +1407,6 @@ body.kitchen-mode .step-list li + li {
 @media (min-width: 520px) {
   .plan-actions {
     grid-template-columns: 1fr auto;
-  }
-
-  .recipe-tools {
-    grid-template-columns: auto 1fr 1fr;
   }
 
   .cart-actions {

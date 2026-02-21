@@ -132,6 +132,11 @@ function renderRoute(): void {
 
   setActiveNav(routeMatch.name);
   updateFloatingCart(routeMatch.name);
+
+  if (routeMatch.name !== 'recipe') {
+    document.body.classList.remove('kitchen-mode');
+  }
+
   routeViewElement.innerHTML = pageForRoute(routeMatch);
   triggerRouteEnterAnimation();
 

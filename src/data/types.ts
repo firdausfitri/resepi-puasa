@@ -27,6 +27,7 @@ export interface Recipe {
   title: string;
   summary: string;
   tags: string[];
+  tiktokUrl?: string;
   ingredientIds: string[];
   stepsShort: string[];
   stepsFull: string[];
