@@ -106,6 +106,7 @@ export function renderPlanPage(): string {
   const todayTitle = todayRecipe?.title ?? `Menu ${todayPlan.code}`;
   const todaySelected = selectedMenus.has(todayPlan.code);
   const selectedCount = selectedMenus.size;
+  const totalMenus = WEEK_PLAN.length;
   const ramadanMessage = getRamadanMessage();
 
   const cards = WEEK_PLAN.map((item, index) => {
@@ -113,11 +114,11 @@ export function renderPlanPage(): string {
     const isSelected = selectedMenus.has(item.code);
     const isToday = index === todayIndex;
     const title = recipe?.title ?? `Menu ${item.code}`;
-    const revealIndex = Math.min(index + 1, 8);
+    const revealIndex = Math.min(index + 2, 10);
 
     return `
       <article
-        class="plan-card ${isToday ? 'is-today' : ''}"
+        class="plan-card ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}"
         data-menu="${escapeHtml(item.code)}"
         data-reveal
         style="--reveal-index:${revealIndex};"
@@ -126,6 +127,7 @@ export function renderPlanPage(): string {
           <p class="day-label">${escapeHtml(item.dayLabel)}</p>
           <div class="plan-chip-group">
             ${isToday ? '<span class="today-badge">Hari ini</span>' : ''}
+            ${isSelected ? '<span class="plan-cart-status">Dalam cart</span>' : ''}
             <span class="menu-code-chip">${escapeHtml(item.code)}</span>
           </div>
         </div>
@@ -152,11 +154,11 @@ export function renderPlanPage(): string {
   }).join('');
 
   return `
-    <section class="page-card">
+    <section class="page-card plan-page">
       <h1>Plan 7 Hari</h1>
       <p class="page-subline">Pilih menu ikut hari, kemudian semak di Cart.</p>
       <div class="pill-row" aria-label="Ringkasan plan">
-        <span class="pill is-accent">Dipilih: ${selectedCount}/7</span>
+        <span class="pill is-accent">Dipilih: ${selectedCount}/${totalMenus}</span>
         <span class="pill">${escapeHtml(ramadanMessage)}</span>
       </div>
 
@@ -165,7 +167,7 @@ export function renderPlanPage(): string {
         data-menu="${escapeHtml(todayPlan.code)}"
         aria-label="Menu hari ini"
         data-reveal
-        style="--reveal-index:0;"
+        style="--reveal-index:1;"
       >
         <p class="today-plan-kicker">Menu Hari Ini</p>
         <h2 class="today-plan-title">${escapeHtml(todayPlan.dayLabel)}: ${escapeHtml(todayTitle)}</h2>

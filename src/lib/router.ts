@@ -43,10 +43,18 @@ export function resolveHashRoute(hashValue: string): RouteMatch | null {
   const recipeMatch = path.match(/^\/recipes\/([^/]+)$/);
 
   if (recipeMatch) {
+    let decodedCode: string;
+
+    try {
+      decodedCode = decodeURIComponent(recipeMatch[1]);
+    } catch {
+      return null;
+    }
+
     return {
       name: 'recipe',
       params: {
-        code: decodeURIComponent(recipeMatch[1]),
+        code: decodedCode,
       },
     };
   }

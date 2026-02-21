@@ -47,7 +47,14 @@ export const ingredients: Ingredient[] = [
     id: 'cili-padi-merah',
     name: 'Cili padi merah',
     category: 'Cili',
-    menuCodes: ['PPT', 'KCP', 'HLA', 'PKP'],
+    menuCodes: ['PPT', 'KCP', 'PKP'],
+  },
+  {
+    id: 'cili-merah',
+    name: 'Cili merah',
+    category: 'Cili',
+    menuCodes: ['HLA'],
+    quantity: '1-2 biji',
   },
   {
     id: 'cili-hijau-besar',
@@ -82,6 +89,13 @@ export const ingredients: Ingredient[] = [
     category: 'Herba & Aromatik',
     menuCodes: ['KCP'],
     quantity: '5 tangkai',
+  },
+  {
+    id: 'daun-bawang',
+    name: 'Daun bawang',
+    category: 'Herba & Aromatik',
+    menuCodes: ['HLA'],
+    quantity: '1-2 batang',
   },
   {
     id: 'daun-selasih',
@@ -216,6 +230,27 @@ export const ingredients: Ingredient[] = [
     name: 'Tepung jagung',
     category: 'Sos & Perasa',
     menuCodes: ['HLA', 'BPP'],
+  },
+  {
+    id: 'lada-putih-sulah',
+    name: 'Serbuk lada sulah / lada putih',
+    category: 'Sos & Perasa',
+    menuCodes: ['HLA'],
+    quantity: '1/2 sudu kecil',
+  },
+  {
+    id: 'cuka-makan',
+    name: 'Cuka makan',
+    category: 'Sos & Perasa',
+    menuCodes: ['HLA'],
+    quantity: 'Sedikit',
+  },
+  {
+    id: 'minyak-bijan',
+    name: 'Minyak bijan',
+    category: 'Sos & Perasa',
+    menuCodes: ['HLA'],
+    quantity: 'Sedikit',
   },
   {
     id: 'garam',

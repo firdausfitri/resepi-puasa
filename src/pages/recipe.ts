@@ -1,12 +1,9 @@
 import { MENU_CODES, type Ingredient, type MenuCode } from '../data/types';
 import { getAllIngredients, getRecipe } from '../lib/data';
-import {
-  getKitchenMode,
-  getSelectedMenus,
-  setKitchenMode,
-  toggleSelectedMenu,
-} from '../lib/storage';
+import { getSelectedMenus, toggleSelectedMenu } from '../lib/storage';
 import { escapeHtml } from '../lib/utils';
+
+const TIKTOK_HOST_REGEX = /(^|\.)tiktok\.com$/i;
 
 function isMenuCode(code: string): code is MenuCode {
   return MENU_CODES.some((menuCode) => menuCode === code);
@@ -16,8 +13,34 @@ function ingredientLookup(): Map<string, Ingredient> {
   return new Map(getAllIngredients().map((ingredient) => [ingredient.id, ingredient]));
 }
 
-function toggleKitchenModeOnBody(isEnabled: boolean): void {
-  document.body.classList.toggle('kitchen-mode', isEnabled);
+function getTikTokEmbedUrl(videoUrl?: string): string | null {
+  if (!videoUrl) {
+    return null;
+  }
+
+  try {
+    const parsedUrl = new URL(videoUrl);
+
+    if (!TIKTOK_HOST_REGEX.test(parsedUrl.hostname)) {
+      return null;
+    }
+
+    const embedMatch = parsedUrl.pathname.match(/\/embed\/v2\/(\d+)/i);
+
+    if (embedMatch) {
+      return `https://www.tiktok.com/player/v1/${embedMatch[1]}`;
+    }
+
+    const videoMatch = parsedUrl.pathname.match(/\/video\/(\d+)/i);
+
+    if (videoMatch) {
+      return `https://www.tiktok.com/player/v1/${videoMatch[1]}`;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
 
 function renderRecipeNotFound(code: string): string {
@@ -53,6 +76,16 @@ function renderCartIcon(isSelected: boolean): string {
   `;
 }
 
+function renderPrintIcon(): string {
+  return `
+    <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 9V2h12v7" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <path d="M6 14h12v8H6z" />
+    </svg>
+  `;
+}
+
 export function renderRecipePage(code: string): string {
   const normalizedCode = code.trim().toUpperCase();
 
@@ -73,7 +106,6 @@ export function renderRecipePage(code: string): string {
 
   const selectedMenus = new Set(getSelectedMenus());
   const alreadySelected = selectedMenus.has(recipe.code);
-  const kitchenMode = getKitchenMode();
 
   const ingredientsMarkup = ingredients
     .map(
@@ -84,12 +116,14 @@ export function renderRecipePage(code: string): string {
     )
     .join('');
 
-  const tagsMarkup = recipe.tags
-    .map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`)
-    .join('');
-
   const stepsShortMarkup = recipe.stepsShort.map((step) => `<li>${escapeHtml(step)}</li>`).join('');
   const stepsFullMarkup = recipe.stepsFull.map((step) => `<li>${escapeHtml(step)}</li>`).join('');
+  const tiktokEmbedUrl = getTikTokEmbedUrl(recipe.tiktokUrl);
+  const hasTikTokVideo = tiktokEmbedUrl !== null;
+  const navRevealIndex = hasTikTokVideo ? 2 : 1;
+  const ingredientRevealIndex = hasTikTokVideo ? 3 : 2;
+  const stepsRevealIndex = hasTikTokVideo ? 4 : 3;
+  const notesRevealIndex = hasTikTokVideo ? 5 : 4;
 
   return `
     <article class="page-card recipe-page" data-recipe-page data-menu-code="${escapeHtml(recipe.code)}">
@@ -100,12 +134,6 @@ export function renderRecipePage(code: string): string {
         </div>
         <p class="recipe-meta">Prep 15 min • Masak 25 min</p>
         <p class="recipe-summary">${escapeHtml(recipe.summary)}</p>
-        <div class="recipe-tags" aria-label="Tag resepi">${tagsMarkup}</div>
-        <div class="pill-row" aria-label="Ringkasan resepi">
-          <span class="pill is-accent">Bahan: ${ingredients.length}</span>
-          <span class="pill">Ringkas: ${recipe.stepsShort.length} langkah</span>
-          <span class="pill">Penuh: ${recipe.stepsFull.length} langkah</span>
-        </div>
         <div class="recipe-tools print-hidden">
           <button
             type="button"
@@ -122,13 +150,12 @@ export function renderRecipePage(code: string): string {
           </button>
           <button
             type="button"
-            class="btn btn-secondary"
-            data-kitchen-toggle
-            aria-pressed="${kitchenMode}"
+            class="icon-btn recipe-print-btn"
+            data-print-recipe
+            aria-label="Print resepi"
           >
-            ${kitchenMode ? 'Dapur Mode: ON' : 'Dapur Mode'}
+            ${renderPrintIcon()}
           </button>
-          <button type="button" class="btn btn-secondary" data-print-recipe>Print</button>
         </div>
         <p
           class="recipe-feedback motion-toast ${alreadySelected ? 'is-visible' : ''}"
@@ -139,23 +166,45 @@ export function renderRecipePage(code: string): string {
         </p>
       </header>
 
+      ${
+        tiktokEmbedUrl
+          ? `
+        <section id="video" class="recipe-section recipe-video-section print-hidden" data-reveal style="--reveal-index:1;">
+          <h2 class="section-title">Video TikTok</h2>
+          <div class="recipe-video-embed">
+            <iframe
+              src="${escapeHtml(tiktokEmbedUrl)}"
+              title="Video TikTok ${escapeHtml(recipe.title)}"
+              loading="lazy"
+              scrolling="no"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowfullscreen
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+          </div>
+        </section>
+      `
+          : ''
+      }
+
       <nav
         class="recipe-jump-nav print-hidden"
         aria-label="Pautan pantas"
         data-reveal
-        style="--reveal-index:1;"
+        style="--reveal-index:${navRevealIndex};"
       >
+        ${hasTikTokVideo ? '<a class="jump-link" href="#video" data-jump-link="video">Video</a>' : ''}
         <a class="jump-link" href="#bahan" data-jump-link="bahan">Bahan</a>
         <a class="jump-link" href="#langkah" data-jump-link="langkah">Langkah</a>
         <a class="jump-link" href="#nota" data-jump-link="nota">Nota</a>
       </nav>
 
-      <section id="bahan" class="recipe-section" data-reveal style="--reveal-index:2;">
+      <section id="bahan" class="recipe-section" data-reveal style="--reveal-index:${ingredientRevealIndex};">
         <h2 class="section-title">Bahan</h2>
         <ul class="ingredient-list">${ingredientsMarkup}</ul>
       </section>
 
-      <section id="langkah" class="recipe-section" data-reveal style="--reveal-index:3;">
+      <section id="langkah" class="recipe-section" data-reveal style="--reveal-index:${stepsRevealIndex};">
         <h2 class="section-title">Langkah</h2>
         <h3 class="recipe-subtitle">Langkah Ringkas</h3>
         <ul class="step-list step-list-short">${stepsShortMarkup}</ul>
@@ -168,7 +217,7 @@ export function renderRecipePage(code: string): string {
         </div>
       </section>
 
-      <section id="nota" class="recipe-section" data-reveal style="--reveal-index:4;">
+      <section id="nota" class="recipe-section" data-reveal style="--reveal-index:${notesRevealIndex};">
         <h2 class="section-title">Nota</h2>
         <p>Tambah nota sendiri nanti.</p>
       </section>
@@ -183,19 +232,13 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
     return;
   }
 
-  const kitchenButton = recipePage.querySelector<HTMLButtonElement>('[data-kitchen-toggle]');
+  document.body.classList.remove('kitchen-mode');
+
   const printButton = recipePage.querySelector<HTMLButtonElement>('[data-print-recipe]');
   const addShoppingButton = recipePage.querySelector<HTMLButtonElement>('[data-add-shopping]');
   const feedbackElement = recipePage.querySelector<HTMLElement>('[data-recipe-feedback]');
   const fullStepsWrap = recipePage.querySelector<HTMLElement>('[data-full-steps]');
   const toggleStepsButton = recipePage.querySelector<HTMLButtonElement>('[data-toggle-steps]');
-
-  const applyKitchenButtonLabel = (isKitchenMode: boolean): void => {
-    if (kitchenButton) {
-      kitchenButton.textContent = isKitchenMode ? 'Dapur Mode: ON' : 'Dapur Mode';
-      kitchenButton.setAttribute('aria-pressed', String(isKitchenMode));
-    }
-  };
 
   const applyCartButtonState = (
     isSelected: boolean,
@@ -225,19 +268,6 @@ export function setupRecipePageInteractions(container: HTMLElement): void {
       feedbackElement.textContent = isSelected ? 'Dalam cart.' : '';
     }
   };
-
-  const kitchenMode = getKitchenMode();
-  toggleKitchenModeOnBody(kitchenMode);
-  applyKitchenButtonLabel(kitchenMode);
-
-  if (kitchenButton) {
-    kitchenButton.addEventListener('click', () => {
-      const nextMode = !getKitchenMode();
-      setKitchenMode(nextMode);
-      toggleKitchenModeOnBody(nextMode);
-      applyKitchenButtonLabel(nextMode);
-    });
-  }
 
   if (printButton) {
     printButton.addEventListener('click', () => {
