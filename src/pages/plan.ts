@@ -8,8 +8,16 @@ interface WeekPlanItem {
   code: MenuCode;
 }
 
-interface MalaysiaDateParts {
+interface MalaysiaHijriDateParts {
+  day: number;
+  month: string;
   year: number;
+}
+
+interface MalaysiaGregorianDateParts {
+  year: number;
+  month: number;
+  day: number;
 }
 
 const WEEK_PLAN: WeekPlanItem[] = [
@@ -24,6 +32,10 @@ const WEEK_PLAN: WeekPlanItem[] = [
 
 const WEEKDAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 const MALAYSIA_TIMEZONE = 'Asia/Kuala_Lumpur';
+const KNOWN_RAMADAN_START_BY_GREGORIAN_YEAR: Record<number, string> = {
+  // Tarikh rasmi Malaysia (MABIMS) untuk 2026.
+  2026: '2026-02-19',
+};
 
 function isMenuCode(code: string): code is MenuCode {
   return MENU_CODES.includes(code as MenuCode);
@@ -39,41 +51,96 @@ function getMalaysiaWeekIndex(): number {
   return index >= 0 ? index : 0;
 }
 
-function getMalaysiaDateParts(): MalaysiaDateParts {
-  const dateParts = new Intl.DateTimeFormat('en-US', {
+function getMalaysiaHijriDateParts(): MalaysiaHijriDateParts | null {
+  const dateParts = new Intl.DateTimeFormat('ms-MY-u-ca-islamic', {
     timeZone: MALAYSIA_TIMEZONE,
+    day: 'numeric',
+    month: 'long',
     year: 'numeric',
   }).formatToParts(new Date());
 
-  const year = Number(dateParts.find((part) => part.type === 'year')?.value ?? '0');
-  return { year };
-}
+  const day = Number(dateParts.find((part) => part.type === 'day')?.value?.replace(/[^\d]/g, '') ?? '0');
+  const month = dateParts.find((part) => part.type === 'month')?.value?.trim() ?? '';
+  const year = Number(dateParts.find((part) => part.type === 'year')?.value?.replace(/[^\d]/g, '') ?? '0');
 
-function getRamadanHijriYear(gregorianYear: number): number | null {
-  const referenceDate = new Date(`${gregorianYear}-02-19T12:00:00+08:00`);
-  const yearPart = new Intl.DateTimeFormat('ms-MY-u-ca-islamic', {
-    timeZone: MALAYSIA_TIMEZONE,
-    year: 'numeric',
-  })
-    .formatToParts(referenceDate)
-    .find((part) => part.type === 'year')?.value;
-
-  if (!yearPart) {
+  if (!Number.isFinite(day) || day <= 0 || !month || !Number.isFinite(year) || year <= 0) {
     return null;
   }
 
-  const numericYear = Number(yearPart.replace(/[^\d]/g, ''));
-  return Number.isFinite(numericYear) && numericYear > 0 ? numericYear : null;
+  return { day, month, year };
+}
+
+function getMalaysiaGregorianDateParts(): MalaysiaGregorianDateParts | null {
+  const dateParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: MALAYSIA_TIMEZONE,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(new Date());
+
+  const year = Number(dateParts.find((part) => part.type === 'year')?.value ?? '0');
+  const month = Number(dateParts.find((part) => part.type === 'month')?.value ?? '0');
+  const day = Number(dateParts.find((part) => part.type === 'day')?.value ?? '0');
+
+  if (!Number.isFinite(year) || year <= 0 || !Number.isFinite(month) || month <= 0 || month > 12) {
+    return null;
+  }
+
+  if (!Number.isFinite(day) || day <= 0 || day > 31) {
+    return null;
+  }
+
+  return { year, month, day };
+}
+
+function getKnownRamadanDayInMalaysia(): number | null {
+  const malaysiaDate = getMalaysiaGregorianDateParts();
+
+  if (!malaysiaDate) {
+    return null;
+  }
+
+  const startDateIso = KNOWN_RAMADAN_START_BY_GREGORIAN_YEAR[malaysiaDate.year];
+
+  if (!startDateIso) {
+    return null;
+  }
+
+  const [startYear, startMonth, startDay] = startDateIso.split('-').map((value) => Number(value));
+
+  if (!startYear || !startMonth || !startDay) {
+    return null;
+  }
+
+  const dayInMs = 24 * 60 * 60 * 1000;
+  const malaysiaDayStamp = Date.UTC(malaysiaDate.year, malaysiaDate.month - 1, malaysiaDate.day);
+  const ramadanStartStamp = Date.UTC(startYear, startMonth - 1, startDay);
+  const dayDiff = Math.floor((malaysiaDayStamp - ramadanStartStamp) / dayInMs);
+
+  if (dayDiff < 0 || dayDiff > 29) {
+    return null;
+  }
+
+  return dayDiff + 1;
 }
 
 function getRamadanMessage(): string {
-  const hijriYear = getRamadanHijriYear(getMalaysiaDateParts().year);
+  const hijriDate = getMalaysiaHijriDateParts();
+  const knownRamadanDay = getKnownRamadanDayInMalaysia();
 
-  if (hijriYear === null) {
-    return '1 Ramadan';
+  if (knownRamadanDay !== null) {
+    if (!hijriDate) {
+      return `${knownRamadanDay} Ramadan`;
+    }
+
+    return `${knownRamadanDay} Ramadan ${hijriDate.year}H`;
   }
 
-  return `1 Ramadan ${hijriYear}H`;
+  if (!hijriDate) {
+    return 'Tarikh Hijri';
+  }
+
+  return `${hijriDate.day} ${hijriDate.month} ${hijriDate.year}H`;
 }
 
 function renderCartIcon(isSelected: boolean): string {
