@@ -1452,6 +1452,523 @@ body.kitchen-mode .step-list li + li {
   }
 }
 
+/* Apple-style material override (HIG-inspired) */
+:root {
+  --font-sans:
+    'SF Pro Text',
+    'SF Pro Display',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  --ink: #1d1d1f;
+  --muted: #5f6572;
+  --muted-2: #737b89;
+  --paper: rgba(255, 255, 255, 0.74);
+  --paper-2: rgba(255, 255, 255, 0.64);
+  --canvas-1: #f7fbff;
+  --canvas-2: #edf3fc;
+  --canvas-3: #e6edf8;
+  --line: rgba(60, 60, 67, 0.2);
+  --line-2: rgba(60, 60, 67, 0.32);
+  --accent: #0a84ff;
+  --accent-2: #5ac8fa;
+  --accent-soft: rgba(10, 132, 255, 0.12);
+  --chip: rgba(255, 255, 255, 0.48);
+  --chip-2: rgba(255, 255, 255, 0.58);
+  --focus: #0a84ff;
+  --shadow-paper: 0 14px 34px rgba(15, 23, 42, 0.11), 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-press: 0 7px 18px rgba(15, 23, 42, 0.16);
+  --material-thin: rgba(255, 255, 255, 0.48);
+  --material-regular: rgba(255, 255, 255, 0.64);
+  --material-thick: rgba(255, 255, 255, 0.78);
+}
+
+body {
+  background-color: var(--canvas-2);
+  background-image:
+    radial-gradient(circle at 18% -6%, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 92% 6%, rgba(181, 213, 255, 0.34) 0%, rgba(181, 213, 255, 0) 40%),
+    radial-gradient(circle at 12% 90%, rgba(156, 194, 242, 0.2) 0%, rgba(156, 194, 242, 0) 46%),
+    linear-gradient(180deg, var(--canvas-1) 0%, var(--canvas-2) 55%, var(--canvas-3) 100%);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--line);
+  background: rgba(246, 250, 255, 0.62);
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.08);
+  backdrop-filter: saturate(185%) blur(22px);
+  -webkit-backdrop-filter: saturate(185%) blur(22px);
+}
+
+.topbar-head {
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.brand {
+  margin: 0;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+
+.brand::before {
+  border-radius: 999px;
+  background: linear-gradient(145deg, #69b5ff 0%, var(--accent) 58%, #3f8fff 100%);
+  box-shadow: 0 10px 22px rgba(10, 132, 255, 0.32);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 0.44rem;
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--material-thin);
+  color: #2f3643;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background var(--motion-fast) var(--motion-ease);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 9px 18px rgba(15, 23, 42, 0.1);
+}
+
+.theme-toggle:active {
+  transform: translateY(1px);
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.theme-toggle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #0a84ff;
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.2);
+}
+
+:root[data-theme='dark'] .theme-toggle-dot {
+  background: #64d2ff;
+  box-shadow: 0 0 0 4px rgba(100, 210, 255, 0.2);
+}
+
+.navbar {
+  padding: 0.2rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: var(--material-thin);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+}
+
+.nav-link {
+  min-height: 46px;
+  border-radius: 0.8rem;
+  color: #2f3643;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+}
+
+.nav-link[aria-current='page'] {
+  color: #0456aa;
+  border-color: rgba(10, 132, 255, 0.35);
+  background: rgba(10, 132, 255, 0.17);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 8px 18px rgba(10, 132, 255, 0.16);
+}
+
+.floating-cart {
+  border: 1px solid rgba(10, 132, 255, 0.78);
+  background: linear-gradient(140deg, #2092ff 0%, #0a84ff 65%, #0076ea 100%);
+  box-shadow: 0 18px 30px rgba(10, 132, 255, 0.32);
+}
+
+.floating-cart.is-active {
+  background: linear-gradient(140deg, #0d7be7 0%, #006ed5 100%);
+}
+
+.floating-cart-badge {
+  border-color: var(--line);
+  background: var(--material-thick);
+  color: #0456aa;
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+}
+
+.page-card,
+.plan-card,
+.today-plan-card,
+.recipe-video-section,
+.recipe-jump-nav,
+.recipe-list-card,
+.shopping-empty-state,
+.cart-item,
+.ingredient-row,
+.checkout-tool-btn,
+.menu-code-chip,
+.menu-mini-chip,
+.jump-link,
+.chip-link,
+.menu-filter-chip,
+.icon-btn,
+.pill {
+  border: 1px solid var(--line);
+  background: var(--material-regular);
+  backdrop-filter: saturate(175%) blur(20px);
+  -webkit-backdrop-filter: saturate(175%) blur(20px);
+}
+
+.page-card {
+  border-radius: 1.35rem;
+  box-shadow: var(--shadow-paper);
+}
+
+.page-card::before {
+  height: 5px;
+  background: linear-gradient(90deg, rgba(10, 132, 255, 0.9) 0%, rgba(90, 200, 250, 0.9) 100%);
+}
+
+.pill {
+  color: #2f3643;
+}
+
+.pill.is-accent {
+  color: #0456aa;
+  border-color: rgba(10, 132, 255, 0.34);
+  background: rgba(10, 132, 255, 0.14);
+}
+
+.pill.is-warn {
+  color: #b25a00;
+  border-color: rgba(255, 149, 0, 0.4);
+  background: rgba(255, 149, 0, 0.12);
+}
+
+.btn {
+  min-height: 42px;
+  border-radius: 0.85rem;
+  font-weight: 640;
+}
+
+.btn-primary,
+.checkout-tool-btn.is-primary {
+  color: #ffffff;
+  border-color: rgba(10, 132, 255, 0.85);
+  background: linear-gradient(140deg, #2092ff 0%, #0a84ff 65%, #0076ea 100%);
+  box-shadow: 0 12px 24px rgba(10, 132, 255, 0.24);
+}
+
+.btn-primary:hover,
+.checkout-tool-btn.is-primary:hover {
+  background: linear-gradient(140deg, #1487f7 0%, #0077e6 100%);
+}
+
+.btn-secondary {
+  color: #2d3645;
+  border-color: var(--line);
+  background: var(--chip-2);
+}
+
+.icon-btn {
+  border-radius: 0.82rem;
+}
+
+.cart-btn.is-added {
+  color: #ffffff;
+  border-color: rgba(10, 132, 255, 0.82);
+  background: linear-gradient(140deg, #2092ff 0%, #0a84ff 65%, #0076ea 100%);
+}
+
+.plan-card,
+.today-plan-card {
+  border-radius: 1.1rem;
+}
+
+.plan-card.is-today,
+.today-plan-card {
+  border-color: rgba(10, 132, 255, 0.34);
+  background: rgba(10, 132, 255, 0.12);
+}
+
+.plan-card.is-selected {
+  border-color: rgba(10, 132, 255, 0.45);
+  background: rgba(10, 132, 255, 0.16);
+}
+
+.today-plan-kicker,
+.recipe-code {
+  color: #0456aa;
+}
+
+.today-badge,
+.plan-cart-status {
+  color: #0456aa;
+  border-color: rgba(10, 132, 255, 0.36);
+  background: rgba(10, 132, 255, 0.14);
+}
+
+.recipe-feedback,
+.cart-checkout-feedback {
+  color: #0456aa;
+}
+
+.recipe-jump-nav {
+  top: 5.15rem;
+  background: rgba(246, 250, 255, 0.72);
+}
+
+.jump-link,
+.chip-link,
+.menu-code-chip,
+.menu-mini-chip {
+  color: #2f3643;
+  background: var(--chip);
+}
+
+.jump-link:hover,
+.chip-link:hover,
+.menu-filter-chip:hover,
+.recipe-list-card:hover,
+.plan-card:hover,
+.today-plan-card:hover,
+.cart-item:hover,
+.ingredient-row:hover,
+.checkout-tool-btn:hover,
+.icon-btn:hover {
+  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.12);
+}
+
+.recipe-list-arrow {
+  color: #7b8596;
+}
+
+.shopping-toggle {
+  color: #2f3643;
+}
+
+.shopping-toggle input {
+  accent-color: var(--accent);
+}
+
+.progress {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.progress::-webkit-progress-value,
+.progress::-moz-progress-bar {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+
+.menu-filter-chip.is-selected {
+  color: #0456aa;
+  border-color: rgba(10, 132, 255, 0.38);
+  background: rgba(10, 132, 255, 0.2);
+}
+
+.ingredient-row.is-checked {
+  border-color: var(--line);
+  background: rgba(213, 224, 241, 0.54);
+}
+
+.ingredient-row.is-just-toggled {
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.17), 0 10px 18px rgba(15, 23, 42, 0.09);
+}
+
+.ingredient-check {
+  border-color: rgba(89, 98, 112, 0.54);
+}
+
+.ingredient-check.is-checked {
+  border-color: rgba(10, 132, 255, 0.85);
+  background: linear-gradient(145deg, #2092ff 0%, #0a84ff 70%, #0076ea 100%);
+}
+
+.shopping-category-title,
+.ingredient-name {
+  color: #27303f;
+}
+
+.shopping-ingredient-qty,
+.shopping-ingredient-note,
+.ingredient-qty {
+  color: #667085;
+}
+
+.ingredient-row.is-checked .ingredient-name,
+.ingredient-row.is-checked .shopping-ingredient-qty {
+  color: #788197;
+}
+
+body.kitchen-mode .recipe-page {
+  border-color: rgba(60, 60, 67, 0.28);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: none;
+}
+
+body.kitchen-mode .recipe-jump-nav {
+  border-color: rgba(60, 60, 67, 0.26);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body.kitchen-mode .jump-link,
+body.kitchen-mode .menu-code-chip {
+  border-color: rgba(60, 60, 67, 0.26);
+  background: rgba(245, 249, 255, 0.9);
+}
+
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .topbar,
+  .navbar,
+  .page-card,
+  .plan-card,
+  .today-plan-card,
+  .recipe-jump-nav,
+  .recipe-video-section,
+  .recipe-list-card,
+  .cart-item,
+  .ingredient-row,
+  .checkout-tool-btn,
+  .shopping-empty-state {
+    background: rgba(255, 255, 255, 0.92);
+  }
+}
+
+:root[data-theme='dark'] {
+  --ink: #f5f5f7;
+  --muted: #b4bbca;
+  --muted-2: #ccd2de;
+  --paper: rgba(28, 28, 30, 0.7);
+  --paper-2: rgba(28, 28, 30, 0.64);
+  --canvas-1: #0d111c;
+  --canvas-2: #0a0e18;
+  --canvas-3: #070b14;
+  --line: rgba(120, 124, 139, 0.34);
+  --line-2: rgba(140, 146, 166, 0.52);
+  --accent: #0a84ff;
+  --accent-2: #64d2ff;
+  --accent-soft: rgba(10, 132, 255, 0.25);
+  --chip: rgba(44, 45, 53, 0.75);
+  --chip-2: rgba(44, 45, 53, 0.85);
+  --shadow-paper: 0 14px 34px rgba(0, 0, 0, 0.38), 0 2px 10px rgba(0, 0, 0, 0.28);
+  --shadow-press: 0 8px 18px rgba(0, 0, 0, 0.42);
+  --material-thin: rgba(28, 28, 30, 0.62);
+  --material-regular: rgba(28, 28, 30, 0.74);
+  --material-thick: rgba(36, 36, 39, 0.86);
+}
+
+:root[data-theme='dark'] body {
+  background-image:
+    radial-gradient(circle at 12% -4%, rgba(24, 32, 54, 0.72) 0%, rgba(24, 32, 54, 0) 46%),
+    radial-gradient(circle at 88% 7%, rgba(10, 132, 255, 0.16) 0%, rgba(10, 132, 255, 0) 45%),
+    radial-gradient(circle at 14% 88%, rgba(66, 92, 148, 0.22) 0%, rgba(66, 92, 148, 0) 40%),
+    linear-gradient(180deg, var(--canvas-1) 0%, var(--canvas-2) 55%, var(--canvas-3) 100%);
+}
+
+:root[data-theme='dark'] .topbar {
+  background: rgba(14, 18, 30, 0.64);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme='dark'] .brand::before {
+  box-shadow: 0 10px 22px rgba(10, 132, 255, 0.42);
+}
+
+:root[data-theme='dark'] .theme-toggle {
+  color: #dde3ef;
+  background: rgba(44, 45, 53, 0.82);
+  border-color: rgba(120, 124, 139, 0.42);
+}
+
+:root[data-theme='dark'] .nav-link {
+  color: #d6dbe8;
+}
+
+:root[data-theme='dark'] .nav-link[aria-current='page'] {
+  color: #9ad2ff;
+  background: rgba(10, 132, 255, 0.24);
+  border-color: rgba(100, 210, 255, 0.36);
+}
+
+:root[data-theme='dark'] .floating-cart-badge {
+  color: #9ad2ff;
+}
+
+:root[data-theme='dark'] .btn-secondary,
+:root[data-theme='dark'] .jump-link,
+:root[data-theme='dark'] .chip-link,
+:root[data-theme='dark'] .menu-code-chip,
+:root[data-theme='dark'] .menu-mini-chip,
+:root[data-theme='dark'] .menu-filter-chip,
+:root[data-theme='dark'] .pill {
+  color: #dde3ef;
+}
+
+:root[data-theme='dark'] .btn:disabled {
+  color: rgba(222, 227, 238, 0.58);
+  background: rgba(90, 96, 112, 0.35);
+  border-color: rgba(90, 96, 112, 0.35);
+}
+
+:root[data-theme='dark'] .today-plan-kicker,
+:root[data-theme='dark'] .recipe-code,
+:root[data-theme='dark'] .recipe-feedback,
+:root[data-theme='dark'] .cart-checkout-feedback {
+  color: #9ad2ff;
+}
+
+:root[data-theme='dark'] .shopping-category-title,
+:root[data-theme='dark'] .ingredient-name {
+  color: #e8ecf7;
+}
+
+:root[data-theme='dark'] .shopping-ingredient-qty,
+:root[data-theme='dark'] .shopping-ingredient-note,
+:root[data-theme='dark'] .ingredient-qty {
+  color: #b5bdd0;
+}
+
+:root[data-theme='dark'] .ingredient-row.is-checked {
+  background: rgba(50, 66, 96, 0.45);
+}
+
+:root[data-theme='dark'] .ingredient-row.is-checked .ingredient-name,
+:root[data-theme='dark'] .ingredient-row.is-checked .shopping-ingredient-qty {
+  color: #aeb7ca;
+}
+
+:root[data-theme='dark'] body.kitchen-mode .recipe-page {
+  background: rgba(22, 24, 33, 0.95);
+}
+
+:root[data-theme='dark'] body.kitchen-mode .recipe-jump-nav {
+  background: rgba(24, 28, 40, 0.9);
+}
+
 @media print {
   body {
     background: #ffffff;

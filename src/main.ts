@@ -9,6 +9,10 @@ import { renderRecipesPage } from './pages/recipes';
 import { renderShoppingPage, setupShoppingPageInteractions } from './pages/shopping';
 import './styles/global.css';
 
+type ThemeMode = 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'themeModeV1';
+
 const appElement = document.querySelector<HTMLDivElement>('#app');
 
 if (!appElement) {
@@ -18,7 +22,19 @@ if (!appElement) {
 appElement.innerHTML = `
   <div class="app-shell">
     <header class="topbar">
-      <p class="brand">Resepi Puasa</p>
+      <div class="topbar-head">
+        <p class="brand">Resepi Puasa</p>
+        <button
+          type="button"
+          class="theme-toggle print-hidden"
+          data-theme-toggle
+          aria-pressed="false"
+          aria-label="Tukar ke mod gelap"
+        >
+          <span class="theme-toggle-dot" aria-hidden="true"></span>
+          <span class="theme-toggle-label" data-theme-toggle-label>Tema: Cerah</span>
+        </button>
+      </div>
       ${renderNavbar()}
     </header>
     <main id="route-view" class="route-view" aria-live="polite"></main>
@@ -42,9 +58,68 @@ if (!routeView) {
 const routeViewElement: HTMLElement = routeView;
 const floatingCartElement = appElement.querySelector<HTMLElement>('[data-floating-cart]');
 const floatingCartBadgeElement = appElement.querySelector<HTMLElement>('[data-floating-cart-badge]');
+const themeToggleButton = appElement.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+const themeToggleLabel = appElement.querySelector<HTMLElement>('[data-theme-toggle-label]');
 let previousSelectedMenusCount: number | null = null;
 let routeAnimationFrameId: number | null = null;
 let routeEnterResetTimeoutId: number | null = null;
+let currentTheme: ThemeMode = 'light';
+
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === 'light' || value === 'dark';
+}
+
+function getInitialTheme(): ThemeMode {
+  try {
+    const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+
+    if (isThemeMode(savedTheme)) {
+      return savedTheme;
+    }
+  } catch {
+    // Ignore storage errors and fall back to system preference.
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function persistTheme(mode: ThemeMode): void {
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+  } catch {
+    // Ignore storage errors to keep UI usable.
+  }
+}
+
+function applyTheme(mode: ThemeMode): void {
+  currentTheme = mode;
+  document.documentElement.setAttribute('data-theme', mode);
+
+  if (!themeToggleButton) {
+    return;
+  }
+
+  const isDark = mode === 'dark';
+  const statusLabel = isDark ? 'Tema: Gelap' : 'Tema: Cerah';
+
+  themeToggleButton.dataset.theme = mode;
+  themeToggleButton.setAttribute('aria-pressed', String(isDark));
+  themeToggleButton.setAttribute('aria-label', isDark ? 'Tukar ke mod cerah' : 'Tukar ke mod gelap');
+
+  if (themeToggleLabel) {
+    themeToggleLabel.textContent = statusLabel;
+  }
+}
+
+applyTheme(getInitialTheme());
+
+if (themeToggleButton) {
+  themeToggleButton.addEventListener('click', () => {
+    const nextTheme: ThemeMode = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme);
+    persistTheme(nextTheme);
+  });
+}
 
 function triggerRouteEnterAnimation(): void {
   routeViewElement.classList.remove('is-route-entering');
